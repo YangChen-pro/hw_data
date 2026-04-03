@@ -1,0 +1,21 @@
+step_id: step_31_check_packet_format
+name: "检查报文格式是否正确"
+content: "有时虽然交换机收到了报文，但是可能报文的格式不对，具体表现为：收到报文后发现TCP/UDP checksum有误，或者IP Header checksum置为1等，此时则需要通过获取报文信息来确认。获取报文信息有三种方式：1）端口镜像（port_mirror）：适用于端口流量不大的场景，将被测接口双向报文复制到观察口进行分析；2）流镜像（flow_mirror）：适用于端口流量较大的场景，仅镜像匹配ACL规则的ICMP报文；3）capture命令（capture）：在无法实施镜像时，使用capture-packet命令直接在接口捕获报文打印到终端。请根据当前接口流量情况选择合适的报文获取方式。"
+type: diagnosis
+skills: []
+transitions:
+  rules:
+    - description: "流量不大，使用端口镜像方式获取报文"
+      condition: ""
+      next_node: step_32_configure_port_mirroring
+    - description: "流量较大，使用流镜像方式获取报文"
+      condition: ""
+      next_node: step_33_configure_flow_mirroring
+    - description: "无法实施镜像，使用capture-packet命令直接捕获报文"
+      condition: ""
+      next_node: step_34_capture_packet_format
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

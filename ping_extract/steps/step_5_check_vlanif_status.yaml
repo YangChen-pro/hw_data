@@ -1,0 +1,32 @@
+step_id: step_5_check_vlanif_status
+name: "检查VLANIF接口是否Up"
+content: "执行display ip interface brief命令查看VLANIF接口状态，若VLANIF接口为Down，说明该VLAN下没有成员接口Up。再执行display interface brief命令查看物理接口状态，确认物理接口是否Up。若物理接口Down，需先排除接口Down的故障；若VLANIF接口和物理接口均Up，继续排查二层协议阻塞问题。"
+type: diagnosis
+skills:
+  - skill_id: "display ip interface brief"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: vlanif_physical_status
+        description: "[custom] VLANIF接口的物理运行状态，Up表示接口正常，Down表示该VLAN下无成员接口Up"
+        type: string
+  - skill_id: "display interface brief"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: port_phy_status
+        description: "[custom] 物理接口的运行状态，Up表示链路正常，Down表示物理链路异常"
+        type: string
+transitions:
+  rules:
+    - description: "VLANIF接口或物理接口为Down状态"
+      condition: "extracted.vlanif_physical_status == 'down' or extracted.port_phy_status == 'down'"
+      next_node: CONCLUSION_INTERFACE_DOWN
+    - description: "VLANIF接口和物理接口均为Up，继续检查二层协议阻塞"
+      condition: "extracted.vlanif_physical_status == 'up' and extracted.port_phy_status == 'up'"
+      next_node: step_6_check_layer2_blocking
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

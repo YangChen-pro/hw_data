@@ -1,0 +1,31 @@
+step_id: step_2_check_port_vlan
+name: "查看接口类型和VLAN配置"
+content: "执行display port vlan命令查看交换机接口的链路类型（Link Type）、PVID及Trunk VLAN List，确认两端接口类型和VLAN配置是否一致。若PC直连交换机，需确认PC所属VLAN与VLANIF IP地址为同一网段；若交换机与其他设备直连，需确认两端接口类型、VLAN配置一致。"
+type: diagnosis
+skills:
+  - skill_id: "display port vlan"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: link_type
+        description: "[custom] 接口链路类型，如Access、Trunk或Hybrid"
+        type: string
+      - name: pvid
+        description: "[custom] 接口PVID（端口默认VLAN ID）"
+        type: integer
+      - name: trunk_vlan_list
+        description: "[custom] Trunk接口允许通过的VLAN列表"
+        type: string
+transitions:
+  rules:
+    - description: "接口类型和VLAN配置正确（两端link_type一致，PVID和VLAN List匹配）"
+      condition: ""
+      next_node: step_3_check_ip_interface
+    - description: "接口类型或VLAN配置不一致（如一端Access另一端Trunk，或PVID不匹配）"
+      condition: ""
+      next_node: CONCLUSION_PORT_VLAN_MISMATCH
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

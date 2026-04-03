@@ -1,0 +1,33 @@
+step_id: step_28_check_switchb_inbound_statistics
+name: "检查SwitchB入方向流量统计"
+content: "在对端SwitchB上执行display traffic policy statistics interface命令，查看入方向（inbound）ICMP流量统计数据，与SwitchA出方向统计数据进行对比。若SwitchA出方向passed_packets大于SwitchB入方向passed_packets，说明中间链路存在丢包。若SwitchB入方向有丢包，说明报文在SwitchB内部入方向处理时被丢弃。"
+type: diagnosis
+skills:
+  - skill_id: "display traffic policy statistics interface"
+    inputs:
+      interface: "接口名称"
+      direction: "inbound"
+    selector:
+    extraction_schema:
+      - name: passed_packets
+        description: "[custom] Passed | Packets字段，表示入方向通过的ICMP报文数目"
+        type: integer
+      - name: dropped_packets
+        description: "[custom] Dropped | Packets字段，表示入方向被丢弃的ICMP报文数目"
+        type: integer
+transitions:
+  rules:
+    - description: "SwitchA出方向通过的报文数大于SwitchB入方向通过的报文数，中间链路存在丢包"
+      condition: "state.step_27_check_switcha_outbound_statistics.passed_packets > extracted.passed_packets"
+      next_node: CONCLUSION_LINK_DROP
+    - description: "SwitchB入方向有报文丢弃，报文在SwitchB内部入方向处理时被丢弃"
+      condition: "extracted.dropped_packets > 0"
+      next_node: CONCLUSION_PACKET_DROPPED_ON_SWITCHB
+    - description: "报文统计数据异常或无法定位具体原因，需人工进一步排查"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

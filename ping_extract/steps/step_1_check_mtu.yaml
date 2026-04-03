@@ -1,0 +1,25 @@
+step_id: step_1_check_mtu
+name: "检查接口MTU值"
+content: "进入接口GigabitEthernet 1/0/1视图，执行display this命令查看接口MTU配置。如果mtu字段不显示，代表接口MTU为默认值1500字节"
+type: diagnosis
+skills:
+  - skill_id: "display this"
+    inputs: {}
+    selector: 
+    extraction_schema:
+      - name: mtu_value
+        description: "[custom] 接口MTU值，单位字节，默认1500，若字段不显示则取1500"
+        type: integer
+transitions:
+  rules:
+    - description: "MTU值小于ICMP报文长度（如MTU为1000但报文长度为1500），报文被丢弃导致Ping不通"
+      condition: ""
+      next_node: CONCLUSION_MTU_TOO_SMALL
+    - description: "MTU值正常（默认1500或配置值大于报文长度），非此原因导致Ping不通"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

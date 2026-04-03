@@ -1,0 +1,27 @@
+step_id: step_35_collect_log_info
+name: "收集日志和诊断信息"
+content: "所有排查步骤均未能定位问题，需要收集日志和诊断信息以便联系华为技术支持。依次执行：1) display logbuffer 查看日志缓冲区信息；2) display trapbuffer 查看Trap缓冲区信息；3) display diagnostic-information 收集一键式诊断信息（注意：该命令可能影响系统性能，输出过长时可按Ctrl+C停止，禁止在多个终端同时执行）。同时收集此前所有排查步骤的执行结果，汇总备用。"
+type: diagnosis
+skills:
+  - skill_id: "display logbuffer"
+    inputs: {}
+    selector:
+    extraction_schema:
+  - skill_id: "display trapbuffer"
+    inputs: {}
+    selector:
+    extraction_schema:
+  - skill_id: "display diagnostic-information"
+    inputs: {}
+    selector:
+    extraction_schema:
+transitions:
+  rules:
+    - description: "日志和诊断信息收集完成，继续保存日志文件"
+      condition: ""
+      next_node: step_36_save_log_files
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

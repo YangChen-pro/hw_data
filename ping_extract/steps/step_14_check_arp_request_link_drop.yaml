@@ -1,0 +1,18 @@
+step_id: step_14_check_arp_request_link_drop
+name: "检查链路访问控制策略丢弃ARP请求报文"
+content: "核查SwitchA发出ARP请求报文后，链路中设备（如SwitchB或中间设备）的访问控制策略是否导致ARP请求报文被丢弃。"
+type: diagnosis
+skills: []
+transitions:
+  rules:
+    - description: "确认为链路访问控制策略丢弃ARP请求报文"
+      condition: ""
+      next_node: CONCLUSION_ARP_REQUEST_LINK_DROP
+    - description: "非此原因，继续排查下一种可能"
+      condition: ""
+      next_node: step_15_check_switchb_cpcar_drop
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

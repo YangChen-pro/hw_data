@@ -1,0 +1,30 @@
+step_id: step_27_check_switcha_outbound_statistics
+name: "检查SwitchA出方向流量统计"
+content: "在SwitchA上执行display traffic policy statistics interface命令，查看出方向（outbound）ICMP流量统计数据。Passed Packets代表成功通过的报文数，Dropped Packets代表被丢弃的报文数。若出方向有丢包（dropped_packets > 0），说明报文在SwitchA内部出方向处理时被丢弃，需要进一步分析原因。若出方向报文均正常通过，需对比入方向统计数据进一步定位。"
+type: diagnosis
+skills:
+  - skill_id: "display traffic policy statistics interface"
+    inputs:
+      interface: "接口名称"
+      direction: "outbound"
+    selector:
+    extraction_schema:
+      - name: passed_packets
+        description: "[custom] Passed | Packets字段，表示出方向通过的ICMP报文数目"
+        type: integer
+      - name: dropped_packets
+        description: "[custom] Dropped | Packets字段，表示出方向被丢弃的ICMP报文数目"
+        type: integer
+transitions:
+  rules:
+    - description: "出方向有报文丢弃，报文在SwitchA内部被丢弃，需人工进一步排查原因"
+      condition: "extracted.dropped_packets > 0"
+      next_node: CONCLUSION_MANUAL_CHECK
+    - description: "出方向报文正常通过，需对比SwitchB入方向统计数据"
+      condition: "extracted.passed_packets > 0 and extracted.dropped_packets == 0"
+      next_node: step_28_check_switchb_inbound_statistics
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

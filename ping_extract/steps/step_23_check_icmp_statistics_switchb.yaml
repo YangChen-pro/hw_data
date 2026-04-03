@@ -1,0 +1,31 @@
+step_id: step_23_check_icmp_statistics_switchb
+name: "检查SwitchB侧ICMP报文收发统计"
+content: "在对端SwitchB上执行display icmp statistics命令，与SwitchA侧数据对比。Input方向echo字段代表SwitchB收到的ICMP Echo Request报文数目，Output方向echo reply字段代表SwitchB回应的ICMP Echo Reply报文数目。若SwitchA发出的echo数目（Output方向）大于SwitchB收到的echo数目（Input方向），说明中间链路存在丢包。若SwitchB收到的echo与回复的echo reply数目一致，则丢包发生在回程链路；若不一致，则说明SwitchB内部也存在丢包问题。"
+type: diagnosis
+skills:
+  - skill_id: "display icmp statistics"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: echo_in
+        description: "[custom] Input方向echo字段计数，表示SwitchB收到的ICMP Echo Request报文数目"
+        type: integer
+      - name: echo_reply_out
+        description: "[custom] Output方向echo reply字段计数，表示SwitchB回应的ICMP Echo Reply报文数目"
+        type: integer
+transitions:
+  rules:
+    - description: "SwitchA发出的echo数目大于SwitchB收到的echo数目，中间链路存在丢包"
+      condition: "state.step_22_check_icmp_statistics_switcha.echo_out > extracted.echo_in"
+      next_node: CONCLUSION_LINK_DROP
+    - description: "SwitchB收到与回应的报文数目一致，且与SwitchA发出一致，需配置流量统计进一步排查"
+      condition: "state.step_22_check_icmp_statistics_switcha.echo_out == extracted.echo_in and extracted.echo_in == extracted.echo_reply_out"
+      next_node: step_24_configure_inbound_traffic_statistics
+    - description: "SwitchB内部存在丢包或其他异常情况，需配置流量统计进一步排查"
+      condition: ""
+      next_node: step_24_configure_inbound_traffic_statistics
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

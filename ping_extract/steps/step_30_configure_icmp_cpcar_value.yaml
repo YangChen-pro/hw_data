@@ -1,0 +1,28 @@
+step_id: step_30_configure_icmp_cpcar_value
+name: "调整ICMP报文CPCAR限速值"
+content: "ICMP报文因CPCAR限速被丢弃，需适当增加CAR值。步骤：1.配置cpu-defend policy，执行car packet-type icmp cir命令指定新的CAR值（如256kbps）；2.将策略全局应用（cpu-defend-policy global）或在指定接口板应用。完成后重新进行Ping测试验证问题是否解决，最后建议恢复原CAR值。注意：调整CPCAR不当将影响网络业务，建议联系技术支持人员处理。"
+type: config
+skills:
+  - skill_id: "cpu-defend policy"
+    inputs:
+      policy_id: "1"
+    extraction_schema: []
+  - skill_id: "car packet-type icmp cir"
+    inputs:
+      cir_value: "256"
+    extraction_schema: []
+  - skill_id: "cpu-defend-policy"
+    inputs:
+      policy_id: "1"
+      scope: "global"
+    extraction_schema: []
+transitions:
+  rules:
+    - description: "已调整ICMP CPCAR限速值，确认为ICMP CPCAR丢包导致Ping不通"
+      condition: ""
+      next_node: CONCLUSION_ICMP_CPCAR_DROP
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_ICMP_CPCAR_DROP

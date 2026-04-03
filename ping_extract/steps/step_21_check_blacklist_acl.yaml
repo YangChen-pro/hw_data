@@ -1,0 +1,26 @@
+step_id: step_21_check_blacklist_acl
+name: "检查黑名单ACL是否命中对端IP"
+content: "执行display acl {acl-number}查看黑名单关联ACL的规则内容，确认rule中source IP是否包含对端IP地址。注意：黑名单ACL中无论rule配置为permit还是deny，命中的报文均会被丢弃。若确认对端IP被命中，需在cpu-defend policy视图下执行undo blacklist {序号}删除黑名单，或修改关联ACL规则排除对端IP。"
+type: diagnosis
+skills:
+  - skill_id: "display acl"
+    inputs:
+      acl_number: "ACL编号（来自Blacklist字段中的ACL number）"
+    selector:
+    extraction_schema:
+      - name: rule
+        description: "[custom] ACL规则行内容，含source IP信息，如'rule 5 permit ip source 10.1.1.1 0'；若无规则则为空"
+        type: string
+transitions:
+  rules:
+    - description: "ACL规则中source IP命中对端IP地址，黑名单导致报文被丢弃"
+      condition: ""
+      next_node: CONCLUSION_BLACKLIST_CONFIGURED
+    - description: "ACL规则未命中对端IP，继续下一步排查"
+      condition: ""
+      next_node: __NEED_FILL__
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

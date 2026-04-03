@@ -1,0 +1,18 @@
+step_id: step_15_check_switchb_cpcar_drop
+name: "检查SwitchB ARP相关CPCAR限速丢弃ARP请求"
+content: "核查SwitchB CPU内ARP相关CPCAR限速是否导致ARP请求报文被丢弃。"
+type: diagnosis
+skills: []
+transitions:
+  rules:
+    - description: "确认为SwitchB CPCAR限速丢弃ARP请求报文"
+      condition: ""
+      next_node: CONCLUSION_SWITCHB_CPCAR_DROP
+    - description: "非此原因，继续排查下一种可能"
+      condition: ""
+      next_node: step_16_check_arp_response_link_drop
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

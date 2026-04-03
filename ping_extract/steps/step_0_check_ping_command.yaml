@@ -1,0 +1,18 @@
+step_id: step_0_check_ping_command
+name: "检查Ping命令是否合理"
+content: "检查在SwitchA上是否执行了ping -f命令，该命令表示ICMP报文发送过程中不支持分片"
+type: diagnosis
+skills: []
+transitions:
+  rules:
+    - description: "使用了-f参数，ICMP报文不支持分片"
+      condition: ""
+      next_node: step_1_check_mtu
+    - description: "未使用-f参数，Ping命令合理"
+      condition: ""
+      next_node: CONCLUSION_COMMAND_REASONABLE
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

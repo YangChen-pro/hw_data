@@ -1,0 +1,28 @@
+step_id: step_11_check_arp_learning
+name: "检查ARP学习是否正确"
+content: "在源端执行display arp all命令，检查直连地址的ARP是否学习正常。若MAC ADDRESS字段显示实际MAC地址，则代表ARP学习正确；若显示为Incomplete，表示当前表项为临时ARP表项，尚未学习到ARP。"
+type: diagnosis
+skills:
+  - skill_id: "display arp all"
+    inputs: {}
+    selector: 
+    extraction_schema:
+      - name: MAC_ADDRESS
+        description: "[custom] 目的IP对应的ARP表项中的MAC地址字段。若学习到实际MAC地址则ARP正常；若为Incomplete则尚未学习完成；若无匹配表项则为空字符串"
+        type: string
+transitions:
+  rules:
+    - description: "ARP表项不存在，MAC ADDRESS为空，尚未学习到目的地址"
+      condition: "extracted.MAC_ADDRESS == ''"
+      next_node: step_13_check_arp_miss_overload
+    - description: "ARP表项为临时表项，MAC ADDRESS显示为Incomplete，尚未学习到对端MAC"
+      condition: "extracted.MAC_ADDRESS == 'Incomplete'"
+      next_node: step_13_check_arp_miss_overload
+    - description: "ARP学习正确，MAC ADDRESS为有效MAC地址，继续检查MAC出接口一致性"
+      condition: "extracted.MAC_ADDRESS != '' and extracted.MAC_ADDRESS != 'Incomplete'"
+      next_node: step_12_check_mac_outbound
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

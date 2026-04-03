@@ -1,0 +1,31 @@
+step_id: step_36_save_log_files
+name: "保存并导出日志文件"
+content: "保存交换机日志和诊断日志：1) 用户视图下执行 save logfile 保存日志文件；2) 进入 system-view，再进入 diagnose 视图，执行 save diag-logfile 保存诊断日志；3) 导出日志文件：框式交换机执行 cd cfcard:/logfile 进入CF卡日志目录；盒式交换机执行 cd logfile/ 进入Flash日志目录，然后将日志文件导出。完成后联系华为技术支持。"
+type: operation
+skills:
+  - skill_id: "save logfile"
+    inputs: {}
+    selector:
+    extraction_schema:
+  - skill_id: "save diag-logfile"
+    inputs: {}
+    selector:
+    extraction_schema:
+  - skill_id: "cd cfcard:/logfile"
+    inputs: {}
+    selector:
+    extraction_schema:
+  - skill_id: "cd logfile/"
+    inputs: {}
+    selector:
+    extraction_schema:
+transitions:
+  rules:
+    - description: "日志文件保存导出完成，联系华为技术支持"
+      condition: ""
+      next_node: CONCLUSION_CONTACT_SUPPORT
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

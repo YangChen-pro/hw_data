@@ -1,0 +1,27 @@
+step_id: step_26_reset_traffic_statistics
+name: "重置SwitchA流量统计计数器"
+content: "在SwitchA上对入方向和出方向的流量统计计数器进行清零重置，确保后续统计数据准确反映当前Ping测试期间的报文收发情况，避免历史数据干扰判断。"
+type: config
+skills:
+  - skill_id: "reset traffic policy statistics interface"
+    inputs:
+      interface: "接口名称"
+      direction: "inbound"
+    selector:
+    extraction_schema: []
+  - skill_id: "reset traffic policy statistics interface"
+    inputs:
+      interface: "接口名称"
+      direction: "outbound"
+    selector:
+    extraction_schema: []
+transitions:
+  rules:
+    - description: "重置完成，执行Ping测试后检查出方向流量统计"
+      condition: ""
+      next_node: step_27_check_switcha_outbound_statistics
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

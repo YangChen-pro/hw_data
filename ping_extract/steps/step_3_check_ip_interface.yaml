@@ -1,0 +1,31 @@
+step_id: step_3_check_ip_interface
+name: "查看VLANIF接口IP地址配置"
+content: "执行display ip interface brief命令查看各VLANIF接口的IP地址配置，确认两端互联接口的IP地址是否属于同一网段。若IP地址不在同一网段，则双方无法直接通信，会导致Ping不通。"
+type: diagnosis
+skills:
+  - skill_id: "display ip interface brief"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: vlanif_ip_list
+        description: "[custom] 各VLANIF接口的IP地址和掩码列表，格式如[{interface: Vlanif10, ip: 10.1.1.1, mask: 24}]"
+        type: list
+      - name: physical_status
+        description: "[custom] 接口物理状态，如up或down"
+        type: string
+      - name: protocol_status
+        description: "[custom] 接口协议状态，如up或down"
+        type: string
+transitions:
+  rules:
+    - description: "两端IP地址在同一网段，配置正确"
+      condition: ""
+      next_node: CONCLUSION_CONFIG_CORRECT
+    - description: "两端IP地址不在同一网段（如一端10.1.1.1/24另一端10.1.2.1/24），配置错误"
+      condition: ""
+      next_node: CONCLUSION_IP_MISMATCH
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK

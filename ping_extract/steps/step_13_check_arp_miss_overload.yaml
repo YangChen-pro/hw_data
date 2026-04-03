@@ -1,0 +1,18 @@
+step_id: step_13_check_arp_miss_overload
+name: "检查ARP Miss过多或终结子接口arp broadcast未使能"
+content: "核查SwitchA是否因短期内大量ARP Miss消息导致ARP请求报文来不及发送出去；或终结子接口是否未使能arp broadcast enable（终结子接口不能转发ARP广播报文，收到后直接丢弃）。"
+type: diagnosis
+skills: []
+transitions:
+  rules:
+    - description: "确认为ARP Miss过多或终结子接口未使能arp broadcast enable"
+      condition: ""
+      next_node: CONCLUSION_ARP_MISS_OVERLOAD
+    - description: "非此原因，继续排查下一种可能"
+      condition: ""
+      next_node: step_14_check_arp_request_link_drop
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  default: CONCLUSION_MANUAL_CHECK
