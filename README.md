@@ -59,6 +59,37 @@
 3. 阅读 `docs/yaml_evaluation_guide.md`
 4. 按 `todo.md` 中的说明完成当前任务
 
+## 评估工具
+
+当前已经提供一个可直接运行的 YAML 评估脚本：
+
+- `tools/yaml_workflow_evaluator.py`
+- 运行方式：`conda run -n claw python tools/yaml_workflow_evaluator.py`
+- 默认输出：`reports/yaml_evaluation/ping_unreachable/<时间戳>/`
+- 新手说明：[`tools/README.md`](/Users/yangchen/Desktop/hw_data/tools/README.md)
+- 报告说明：[`reports/README.md`](/Users/yangchen/Desktop/hw_data/reports/README.md)
+
+另外还有一个 workflow HTML 查看器：
+
+- `tools/workflow_html_viewer.py`
+- 运行方式：`bash tools/run_viewer_example.sh`
+- 默认输出：`reports/workflow_viewer/ping_unreachable/<时间戳>/index.html`
+- 页面形态：可缩放、可点击的单页流程图
+- 交互重点：`当前子图 / 全图 / 异常路径 / 分组聚焦`，右下角 minimap 作为固定 overlay 辅助导航，点击节点或边可直接查看详情
+
+输出目录内包含：
+
+- `report.md`：人工阅读版结果
+- `report.json`：结构化结果
+- `issues.csv`：扁平问题清单
+- `manifest.json`：本次生成的文件清单
+
+如果你先看 workflow 结构，再看评估结果，建议顺序是：
+
+1. 先打开 workflow HTML 查看器，理解流程跳转和分组范围
+2. 再运行评估器生成 `report.md`
+3. 最后按 `todo.md` 的检查项修正 YAML
+
 ## 工作约定
 
 - 文件名和目录名统一使用英文

@@ -1,5 +1,14 @@
 # TODO：评估已有 YAML
 
+## 当前实现状态
+
+- [x] 已实现可直接运行的 YAML 评估器
+- [x] 已实现 workflow 单页 HTML 查看器
+- [x] HTML 查看器支持 `当前子图 / 全图 / 异常路径 / 分组聚焦`
+- [x] minimap 已固定为 graph panel 的 overlay
+- [x] 评估报告已经输出为 `report.md / report.json / issues.csv`
+- [ ] 下一步：根据最新评估结果继续修正 YAML 内容
+
 ## 目标
 
 评估 `workflows/ping_unreachable/` 下现有 YAML 工作流的结构质量，在继续抽取或清理之前先识别出明显问题。

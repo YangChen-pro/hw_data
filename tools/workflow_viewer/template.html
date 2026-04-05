@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>__PAGE_TITLE__</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: rgba(255, 255, 255, 0.82);
+      --panel-strong: #ffffff;
+      --border: rgba(148, 163, 184, 0.24);
+      --text: #0f172a;
+      --muted: #475569;
+      --subtle: #64748b;
+      --primary: #0f766e;
+      --primary-soft: rgba(15, 118, 110, 0.12);
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --warning: #d97706;
+      --warning-soft: rgba(217, 119, 6, 0.14);
+      --critical: #dc2626;
+      --critical-soft: rgba(220, 38, 38, 0.14);
+      --info: #1d4ed8;
+      --success: #15803d;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
+      --radius: 20px;
+      --radius-sm: 14px;
+      --max: 1600px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 28%),
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 30%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 22px 24px 10px;
+      width: 100%;
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      padding: 22px 24px;
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(245,247,255,0.92));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .title-block h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .title-block p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .meta-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .badge, .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      line-height: 1;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge-primary { background: var(--primary-soft); color: var(--primary); border-color: rgba(15, 118, 110, 0.18); }
+    .badge-accent { background: var(--accent-soft); color: var(--accent); border-color: rgba(37, 99, 235, 0.18); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); border-color: rgba(217, 119, 6, 0.18); }
+    .badge-critical { background: var(--critical-soft); color: var(--critical); border-color: rgba(220, 38, 38, 0.18); }
+    .badge-muted { background: rgba(100, 116, 139, 0.10); color: var(--subtle); border-color: rgba(100, 116, 139, 0.14); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(248, 250, 252, 0.9);
+      border: 1px solid var(--border);
+    }
+
+    .stat .value {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .workspace {
+      max-width: var(--max);
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px 24px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 360px;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .panel {
+      min-height: 0;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar, .detail {
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+    }
+
+    .detail {
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+    }
+
+    .content {
+      min-height: 0;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .section {
+      margin-bottom: 16px;
+      padding: 16px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .overview-strip {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .overview-card {
+      min-width: 210px;
+      flex: 0 0 auto;
+      text-align: left;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border-radius: 18px;
+      padding: 14px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .overview-card:hover,
+    .overview-card.active {
+      transform: translateY(-2px);
+      border-color: rgba(37, 99, 235, 0.30);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+    }
+
+    .overview-card .kicker {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .overview-card h3 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .overview-card .desc {
+      margin: 0 0 10px;
+      color: var(--subtle);
+      font-size: 12px;
+      line-height: 1.45;
+      min-height: 34px;
+    }
+
+    .overview-card .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .overview-arrow {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      color: var(--subtle);
+      font-size: 20px;
+      min-width: 18px;
+      padding: 0 2px;
+    }
+
+    .group-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    details.group {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      overflow: hidden;
+    }
+
+    details.group[open] {
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    summary.group-summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    summary.group-summary::-webkit-details-marker { display: none; }
+
+    .group-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .group-title strong {
+      font-size: 15px;
+    }
+
+    .group-title span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .group-summary .right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .group-body {
+      border-top: 1px solid rgba(148, 163, 184, 0.16);
+      padding: 14px 16px 16px;
+    }
+
+    .node-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .node-card {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      padding: 12px 12px 10px;
+      min-width: 210px;
+      max-width: 280px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      flex: 0 0 auto;
+    }
+
+    .node-card:hover,
+    .node-card.active {
+      transform: translateY(-2px);
+      border-color: rgba(15, 118, 110, 0.35);
+      box-shadow: 0 12px 24px rgba(15, 118, 110, 0.12);
+    }
+
+    .node-card .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .node-card .name {
+      margin: 0 0 6px;
+      font-size: 14px;
+      line-height: 1.35;
+      min-height: 38px;
+    }
+
+    .node-card .content {
+      font-size: 12px;
+      color: var(--subtle);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .node-card .footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .connector {
+      color: var(--subtle);
+      font-size: 18px;
+      padding: 0 2px;
+    }
+
+    .transition-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .transition-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.82);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .transition-item .line1 {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .detail-head {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .detail-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .detail-head .sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .detail-block {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.90);
+      margin-bottom: 12px;
+    }
+
+    .detail-block h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .kv {
+      display: grid;
+      gap: 8px;
+    }
+
+    .kv .item {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 10px;
+      align-items: start;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .kv .key { color: var(--muted); }
+
+    .skill-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .skill-card {
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.86);
+      padding: 12px;
+    }
+
+    .skill-card .skill-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--subtle);
+    }
+
+    .detail-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .detail-list .row {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(248, 250, 252, 0.82);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .code-block {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 11px;
+      line-height: 1.55;
+      overflow: auto;
+    }
+
+    .search {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px 12px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.94);
+      outline: none;
+      color: var(--text);
+    }
+
+    .search:focus {
+      border-color: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+    }
+
+    .sidebar h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.82);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      border-color: rgba(37, 99, 235, 0.28);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
+    }
+
+    .nav-item .left {
+      display: grid;
+      gap: 4px;
+    }
+
+    .nav-item .left strong {
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .nav-item .left span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .nav-item .count {
+      font-size: 12px;
+    }
+
+    .hint {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      margin-bottom: 12px;
+    }
+
+    .empty {
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(248, 250, 252, 0.84);
+      border: 1px dashed rgba(148, 163, 184, 0.34);
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1280px) {
+      .hero-card,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      body { overflow: auto; }
+      .sidebar, .detail { position: static; max-height: none; }
+      .content { overflow: visible; }
+    }
+
+    @media (max-width: 720px) {
+      .hero { padding: 12px; }
+      .workspace { padding: 0 12px 12px; }
+      .hero-card { padding: 18px 16px; }
+      .title-block h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="hero-card">
+        <div class="title-block">
+          <h1>__PAGE_TITLE__</h1>
+          <p>__PAGE_SUBTITLE__</p>
+          <div class="meta-line" id="meta-line"></div>
+        </div>
+        <div class="stats-grid" id="top-stats"></div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="panel sidebar">
+        <h3>层级导航</h3>
+        <input id="search" class="search" type="search" placeholder="搜索 step_id / 名称 / 内容" />
+        <div class="nav-list" id="nav-list"></div>
+      </aside>
+
+      <main class="content">
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <h2>流程总览</h2>
+              <p>点击分层卡片可快速定位到对应章节，所有操作都在同页完成。</p>
+            </div>
+            <div class="badge badge-muted" id="report-note"></div>
+          </div>
+          <div class="overview-strip" id="overview-strip"></div>
+        </section>
+
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <h2>分层展开</h2>
+              <p>每个分组内部展示该层的步骤卡片和转移规则。</p>
+            </div>
+          </div>
+          <div class="group-list" id="group-list"></div>
+        </section>
+
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <h2>结论节点</h2>
+              <p>流程最终收敛到的判断结果与修复建议。</p>
+            </div>
+          </div>
+          <div class="node-row" id="conclusion-list"></div>
+        </section>
+      </main>
+
+      <aside class="panel detail" id="detail-panel">
+        <div class="detail-head">
+          <h2 id="detail-title">选择一个节点查看详情</h2>
+          <div class="sub" id="detail-subtitle">点击中间区域的步骤卡片，右侧会显示该节点的内容、技能、转移规则和问题标记。</div>
+        </div>
+        <div id="detail-body" class="detail-list">
+          <div class="empty">尚未选择节点</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script id="workflow-data" type="application/json">__WORKFLOW_VIEWER_DATA__</script>
+  <script>
+    const DATA = JSON.parse(document.getElementById('workflow-data').textContent);
+    const STATE = {
+      activeNodeId: DATA.meta.start_nodes[0] || (DATA.nodes[0] && DATA.nodes[0].id) || '',
+      activeGroupId: DATA.groups[0] ? DATA.groups[0].id : '',
+      query: '',
+    };
+
+    const nodeById = Object.fromEntries([...DATA.nodes, ...DATA.conclusion_nodes].map((node) => [node.id, node]));
+    const groupById = Object.fromEntries(DATA.groups.map((group) => [group.id, group]));
+    const nodesByGroup = DATA.groups.reduce((acc, group) => {
+      acc[group.id] = (group.step_ids || []).map((id) => nodeById[id]).filter(Boolean);
+      return acc;
+    }, {});
+    const incomingMap = {};
+    const outgoingMap = {};
+    for (const edge of DATA.edges) {
+      if (!outgoingMap[edge.source]) outgoingMap[edge.source] = [];
+      outgoingMap[edge.source].push(edge);
+      if (!incomingMap[edge.target]) incomingMap[edge.target] = [];
+      incomingMap[edge.target].push(edge);
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function badgeClassFromSeverity(node) {
+      if (!node || !node.issue_counts) return 'badge-muted';
+      if ((node.issue_counts.critical || 0) > 0) return 'badge-critical';
+      if ((node.issue_counts.warning || 0) > 0) return 'badge-warning';
+      if ((node.issue_counts.info || 0) > 0) return 'badge-accent';
+      return 'badge-primary';
+    }
+
+    function formatIssueSummary(node) {
+      const counts = node.issue_counts || { critical: 0, warning: 0, info: 0 };
+      const parts = [];
+      if (counts.critical) parts.push(`严重 ${counts.critical}`);
+      if (counts.warning) parts.push(`警告 ${counts.warning}`);
+      if (counts.info) parts.push(`提示 ${counts.info}`);
+      return parts.length ? parts.join(' · ') : '无问题';
+    }
+
+    function renderTopStats() {
+      const issueTotal = DATA.issue_summary.total || 0;
+      const global = DATA.issue_summary.global || {};
+      const items = [
+        [DATA.meta.step_count, '节点数'],
+        [DATA.meta.conclusion_count, '结论数'],
+        [DATA.edge_count, '边数'],
+        [issueTotal, '已知问题'],
+      ];
+      document.getElementById('top-stats').innerHTML = items.map(([value, label]) => `
+        <div class="stat">
+          <div class="value">${escapeHtml(value)}</div>
+          <div class="label">${escapeHtml(label)}</div>
+        </div>
+      `).join('');
+
+      const meta = [
+        ['workflow_id', DATA.meta.workflow_id || '未命名'],
+        ['version', DATA.meta.version || '—'],
+        ['start_nodes', DATA.meta.start_nodes.join(', ') || '—'],
+      ];
+      document.getElementById('meta-line').innerHTML = meta.map(([k, v]) => `<span class="badge badge-muted">${escapeHtml(k)}: ${escapeHtml(v)}</span>`).join('');
+
+      const note = DATA.issue_report ? '已加载最近评估报告' : '未加载评估报告';
+      document.getElementById('report-note').textContent = note;
+
+      return global;
+    }
+
+    function renderOverview() {
+      const overview = document.getElementById('overview-strip');
+      const flowGroups = DATA.groups.filter((group) => group.id !== 'group_conclusions');
+      overview.innerHTML = flowGroups.map((group, index) => {
+        const counts = group.issue_counts || { critical: 0, warning: 0, info: 0 };
+        const badges = [];
+        if (counts.critical) badges.push(`<span class="badge badge-critical">严重 ${counts.critical}</span>`);
+        if (counts.warning) badges.push(`<span class="badge badge-warning">警告 ${counts.warning}</span>`);
+        if (counts.info) badges.push(`<span class="badge badge-accent">提示 ${counts.info}</span>`);
+        badges.push(`<span class="badge badge-muted">${(group.step_ids || []).length} 步</span>`);
+        return `
+          <button class="overview-card ${group.id === STATE.activeGroupId ? 'active' : ''}" data-group-id="${escapeHtml(group.id)}">
+            <div class="kicker">
+              <span>${escapeHtml(String(index + 1).padStart(2, '0'))}</span>
+              <span>${escapeHtml(group.range)}</span>
+            </div>
+            <h3>${escapeHtml(group.title)}</h3>
+            <p class="desc">${escapeHtml(group.description)}</p>
+            <div class="metrics">${badges.join('')}</div>
+          </button>
+          ${index < flowGroups.length - 1 ? '<div class="overview-arrow">→</div>' : ''}
+        `;
+      }).join('');
+
+      overview.querySelectorAll('[data-group-id]').forEach((btn) => {
+        btn.addEventListener('click', () => focusGroup(btn.dataset.groupId));
+      });
+    }
+
+    function nodeMatchesQuery(node, query) {
+      if (!query) return true;
+      const haystack = [
+        node.id,
+        node.name,
+        node.content,
+        (node.skills || []).map((skill) => skill.skill_id || '').join(' '),
+        (node.transitions || []).map((item) => `${item.description || ''} ${item.condition || ''} ${item.next_node || ''}`).join(' '),
+      ].join(' ').toLowerCase();
+      return haystack.includes(query.toLowerCase());
+    }
+
+    function renderGroups() {
+      const groupList = document.getElementById('group-list');
+      const flowGroups = DATA.groups.filter((group) => group.id !== 'group_conclusions');
+      groupList.innerHTML = flowGroups.map((group, index) => {
+        const nodes = nodesByGroup[group.id] || [];
+        const visibleNodes = nodes.filter((node) => nodeMatchesQuery(node, STATE.query));
+        const open = index < 2 || group.id === STATE.activeGroupId;
+        return `
+          <details class="group" data-group-id="${escapeHtml(group.id)}" ${open ? 'open' : ''}>
+            <summary class="group-summary">
+              <div class="group-title">
+                <strong>${escapeHtml(group.title)}</strong>
+                <span>${escapeHtml(group.range)} · ${escapeHtml(group.description)}</span>
+              </div>
+              <div class="right">
+                <span class="badge badge-muted">${nodes.length} 节点</span>
+                <span class="badge ${badgeClassFromSeverity({ issue_counts: group.issue_counts })}">
+                  ${escapeHtml(formatIssueSummary({ issue_counts: group.issue_counts }))}
+                </span>
+              </div>
+            </summary>
+            <div class="group-body">
+              <div class="node-row">
+                ${visibleNodes.length ? visibleNodes.map((node, idx) => `
+                  ${idx > 0 ? '<span class="connector">→</span>' : ''}
+                  <button class="node-card ${node.id === STATE.activeNodeId ? 'active' : ''}" data-node-id="${escapeHtml(node.id)}" data-group-id="${escapeHtml(group.id)}">
+                    <div class="meta">
+                      <span>${escapeHtml(node.id)}</span>
+                      <span class="badge ${badgeClassFromSeverity(node)}">${escapeHtml(node.summary_badge)}</span>
+                    </div>
+                    <p class="name">${escapeHtml(node.name)}</p>
+                    <div class="content">${escapeHtml(node.content)}</div>
+                    <div class="footer">
+                      <span class="badge badge-muted">${escapeHtml(node.type_label || node.type)}</span>
+                      <span class="badge badge-primary">${escapeHtml(node.group_title)}</span>
+                    </div>
+                  </button>
+                `).join('') : '<div class="empty">当前搜索条件下，此分组没有匹配节点。</div>'}
+              </div>
+              <div class="transition-list">
+                ${(nodes[0] ? renderTransitionList(nodes[0]) : '<div class="empty">该分组没有节点。</div>')}
+              </div>
+            </div>
+          </details>
+        `;
+      }).join('');
+
+      groupList.querySelectorAll('[data-node-id]').forEach((btn) => {
+        btn.addEventListener('click', () => focusNode(btn.dataset.nodeId, btn.dataset.groupId));
+      });
+      groupList.querySelectorAll('details.group').forEach((detail) => {
+        detail.addEventListener('toggle', () => {
+          if (detail.open) STATE.activeGroupId = detail.dataset.groupId;
+          renderOverview();
+        });
+      });
+    }
+
+    function renderTransitionList(node) {
+      if (!node.transitions || !node.transitions.length) {
+        return '<div class="empty">没有可展示的转移规则。</div>';
+      }
+      return node.transitions.map((item) => {
+        const kindBadge = item.kind === 'default'
+          ? '<span class="badge badge-muted">default</span>'
+          : item.kind.startsWith('error')
+            ? '<span class="badge badge-warning">on_error</span>'
+            : '<span class="badge badge-primary">rule</span>';
+        return `
+          <div class="transition-item">
+            <div class="line1">
+              ${kindBadge}
+              <span class="badge badge-muted">next: ${escapeHtml(item.next_node || '—')}</span>
+            </div>
+            <div><strong>${escapeHtml(item.description || '未命名规则')}</strong></div>
+            <div class="small">condition: ${escapeHtml(item.condition || '（空）')}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderConclusions() {
+      const container = document.getElementById('conclusion-list');
+      container.innerHTML = DATA.conclusion_nodes.map((node) => `
+        <button class="node-card ${node.id === STATE.activeNodeId ? 'active' : ''}" data-node-id="${escapeHtml(node.id)}" data-group-id="group_conclusions" style="min-width: 240px;">
+          <div class="meta">
+            <span>${escapeHtml(node.id)}</span>
+            <span class="badge ${node.level === 'error' ? 'badge-critical' : node.level === 'warning' ? 'badge-warning' : 'badge-accent'}">${escapeHtml(node.level)}</span>
+          </div>
+          <p class="name">${escapeHtml(node.name)}</p>
+          <div class="content">${escapeHtml(node.content)}</div>
+          <div class="footer">
+            <span class="badge badge-muted">${escapeHtml(node.summary_badge)}</span>
+          </div>
+        </button>
+      `).join('');
+      container.querySelectorAll('[data-node-id]').forEach((btn) => {
+        btn.addEventListener('click', () => focusNode(btn.dataset.nodeId, btn.dataset.groupId));
+      });
+    }
+
+    function focusGroup(groupId) {
+      STATE.activeGroupId = groupId;
+      const detail = document.querySelector(`details.group[data-group-id="${CSS.escape(groupId)}"]`);
+      if (detail) detail.open = true;
+      renderOverview();
+      document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.groupId === groupId));
+      const target = document.querySelector(`details.group[data-group-id="${CSS.escape(groupId)}"]`);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const firstNode = (nodesByGroup[groupId] || [])[0];
+      if (firstNode) focusNode(firstNode.id, groupId, false);
+    }
+
+    function focusNode(nodeId, groupId, updateGroup = true) {
+      const node = nodeById[nodeId];
+      if (!node) return;
+      STATE.activeNodeId = nodeId;
+      if (updateGroup && groupId) STATE.activeGroupId = groupId;
+
+      document.querySelectorAll('.node-card').forEach((card) => {
+        card.classList.toggle('active', card.dataset.nodeId === nodeId);
+      });
+      document.querySelectorAll('.overview-card').forEach((card) => {
+        card.classList.toggle('active', card.dataset.groupId === STATE.activeGroupId);
+      });
+      document.querySelectorAll('.nav-item').forEach((item) => {
+        item.classList.toggle('active', item.dataset.groupId === STATE.activeGroupId);
+      });
+
+      renderDetails(node);
+    }
+
+    function renderDetails(node) {
+      const incoming = incomingMap[node.id] || [];
+      const outgoing = outgoingMap[node.id] || [];
+      document.getElementById('detail-title').textContent = `${node.id} · ${node.name}`;
+      document.getElementById('detail-subtitle').textContent = node.type === 'step'
+        ? `分组：${node.group_title} | 文件：${node.step_file}`
+        : `结论节点 | 等级：${node.level}`;
+
+      const issueCounts = node.issue_counts || { critical: 0, warning: 0, info: 0 };
+      const issueBadges = [
+        issueCounts.critical ? `<span class="badge badge-critical">严重 ${issueCounts.critical}</span>` : '',
+        issueCounts.warning ? `<span class="badge badge-warning">警告 ${issueCounts.warning}</span>` : '',
+        issueCounts.info ? `<span class="badge badge-accent">提示 ${issueCounts.info}</span>` : '',
+        `<span class="badge badge-muted">${escapeHtml(node.summary_badge)}</span>`,
+      ].filter(Boolean).join('');
+
+      let html = `
+        <div class="detail-block">
+          <h3>节点概览</h3>
+          <div class="kv">
+            <div class="item"><div class="key">类型</div><div>${escapeHtml(node.type || '—')}</div></div>
+            <div class="item"><div class="key">分组</div><div>${escapeHtml(node.group_title || node.level || '—')}</div></div>
+            <div class="item"><div class="key">问题</div><div>${issueBadges}</div></div>
+          </div>
+        </div>
+      `;
+
+      if (node.type === 'step') {
+        html += `
+          <div class="detail-block">
+            <h3>步骤信息</h3>
+            <div class="kv">
+              <div class="item"><div class="key">文件</div><div>${escapeHtml(node.step_file)}</div></div>
+              <div class="item"><div class="key">说明</div><div>${escapeHtml(node.content || '—')}</div></div>
+            </div>
+          </div>
+        `;
+
+        html += `
+          <div class="detail-block">
+            <h3>Skills</h3>
+            <div class="skill-list">
+              ${(node.skills || []).length ? node.skills.map((skill, idx) => `
+                <div class="skill-card">
+                  <div class="skill-head">
+                    <strong>${escapeHtml(skill.skill_id || `skill_${idx + 1}`)}</strong>
+                    <span class="badge badge-muted">${escapeHtml(Object.keys(skill.inputs || {}).length)} inputs</span>
+                  </div>
+                  <div class="kv">
+                    <div class="item"><div class="key">selector</div><div>${skill.selector ? `<code class="code-block">${escapeHtml(JSON.stringify(skill.selector))}</code>` : '—'}</div></div>
+                    <div class="item"><div class="key">inputs</div><div><code class="code-block">${escapeHtml(JSON.stringify(skill.inputs || {}, null, 2))}</code></div></div>
+                    <div class="item"><div class="key">schema</div><div><code class="code-block">${escapeHtml(JSON.stringify(skill.extraction_schema || [], null, 2))}</code></div></div>
+                  </div>
+                </div>
+              `).join('') : '<div class="empty">没有 skills。</div>'}
+            </div>
+          </div>
+        `;
+
+        html += `
+          <div class="detail-block">
+            <h3>转移规则</h3>
+            <div class="detail-list">
+              ${renderTransitionList(node)}
+            </div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="detail-block">
+            <h3>结论内容</h3>
+            <div class="kv">
+              <div class="item"><div class="key">说明</div><div>${escapeHtml(node.content || '—')}</div></div>
+              <div class="item"><div class="key">建议</div><div>${escapeHtml(node.repair_action || '—')}</div></div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="detail-block">
+          <h3>关联节点</h3>
+          <div class="kv">
+            <div class="item"><div class="key">上游</div><div>${incoming.length ? incoming.map((edge) => `<span class="badge badge-muted">${escapeHtml(edge.source)} → ${escapeHtml(edge.kind)}</span>`).join(' ') : '—'}</div></div>
+            <div class="item"><div class="key">下游</div><div>${outgoing.length ? outgoing.map((edge) => `<span class="badge badge-muted">${escapeHtml(edge.kind)} → ${escapeHtml(edge.target || '—')}</span>`).join(' ') : '—'}</div></div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('detail-body').innerHTML = html;
+    }
+
+    function renderSidebar() {
+      const sidebar = document.getElementById('nav-list');
+      const flowGroups = DATA.groups.filter((group) => group.id !== 'group_conclusions');
+      sidebar.innerHTML = flowGroups.map((group) => `
+        <button class="nav-item ${group.id === STATE.activeGroupId ? 'active' : ''}" data-group-id="${escapeHtml(group.id)}">
+          <span class="left">
+            <strong>${escapeHtml(group.title)}</strong>
+            <span>${escapeHtml(group.range)}</span>
+          </span>
+          <span class="count badge ${group.issue_counts.critical ? 'badge-critical' : group.issue_counts.warning ? 'badge-warning' : 'badge-muted'}">${(group.step_ids || []).length}</span>
+        </button>
+      `).join('');
+      sidebar.querySelectorAll('[data-group-id]').forEach((btn) => {
+        btn.addEventListener('click', () => focusGroup(btn.dataset.groupId));
+      });
+    }
+
+    function renderApp() {
+      renderTopStats();
+      renderSidebar();
+      renderOverview();
+      renderGroups();
+      renderConclusions();
+      const activeNode = nodeById[STATE.activeNodeId] || DATA.nodes[0] || DATA.conclusion_nodes[0];
+      if (activeNode) renderDetails(activeNode);
+      document.getElementById('search').addEventListener('input', (event) => {
+        STATE.query = event.target.value.trim();
+        renderGroups();
+      });
+    }
+
+    renderApp();
+  </script>
+</body>
+</html>

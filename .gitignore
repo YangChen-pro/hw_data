@@ -1,2 +1,4 @@
 .DS_Store
 .helloagents/
+helloagents_backup_*/
+__pycache__/

@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>__PAGE_TITLE__</title>
+  <style>
+    :root {
+      --bg: #eef3ff;
+      --panel: rgba(255, 255, 255, 0.84);
+      --panel-strong: #ffffff;
+      --border: rgba(148, 163, 184, 0.22);
+      --text: #0f172a;
+      --muted: #475569;
+      --subtle: #64748b;
+      --primary: #0f766e;
+      --primary-soft: rgba(15, 118, 110, 0.12);
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --warning: #d97706;
+      --warning-soft: rgba(217, 119, 6, 0.14);
+      --critical: #dc2626;
+      --critical-soft: rgba(220, 38, 38, 0.14);
+      --success: #15803d;
+      --shadow: 0 20px 50px rgba(15, 23, 42, 0.10);
+      --radius: 20px;
+      --radius-sm: 14px;
+      --toolbar-h: 54px;
+      --sidebar-w: 280px;
+      --detail-w: 360px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 26%),
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 30%),
+        linear-gradient(180deg, #f8fbff 0%, #eef2ff 100%);
+      overflow: hidden;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .hero {
+      padding: 18px 18px 12px;
+    }
+
+    .hero-card {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(360px, 0.8fr);
+      gap: 14px;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(246,249,255,0.94));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-card > * {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .title-block h1 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 2vw, 30px);
+      line-height: 1.2;
+    }
+
+    .title-block p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .meta-line {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .meta-item {
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(248, 250, 252, 0.88);
+    }
+
+    .meta-item .key {
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .meta-item .value {
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      line-height: 1;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .badge-primary { background: var(--primary-soft); color: var(--primary); border-color: rgba(15, 118, 110, 0.18); }
+    .badge-accent { background: var(--accent-soft); color: var(--accent); border-color: rgba(37, 99, 235, 0.18); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); border-color: rgba(217, 119, 6, 0.18); }
+    .badge-critical { background: var(--critical-soft); color: var(--critical); border-color: rgba(220, 38, 38, 0.18); }
+    .badge-muted { background: rgba(100, 116, 139, 0.10); color: var(--subtle); border-color: rgba(100, 116, 139, 0.14); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(248, 250, 252, 0.9);
+      border: 1px solid var(--border);
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main-grid {
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 18px 18px;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--detail-w);
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .main-grid > * {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .panel {
+      min-width: 0;
+      min-height: 0;
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-inner {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .sidebar,
+    .detail-panel {
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px;
+      max-height: calc(100vh - 170px);
+      position: sticky;
+      top: 16px;
+      scrollbar-gutter: stable;
+    }
+
+    .detail-panel {
+      min-width: 0;
+    }
+
+    .detail-panel,
+    .detail-panel * {
+      min-width: 0;
+    }
+
+    .detail-panel .badge {
+      white-space: normal;
+      align-items: flex-start;
+      line-height: 1.3;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .search {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.94);
+      color: var(--text);
+      outline: none;
+      min-width: 0;
+    }
+
+    .search:focus {
+      border-color: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+    }
+
+    .sidebar-block + .sidebar-block {
+      margin-top: 16px;
+    }
+
+    .quick-list,
+    .group-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-item,
+    .group-item {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.84);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .quick-item:hover,
+    .group-item:hover,
+    .quick-item.active,
+    .group-item.active {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.28);
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.08);
+    }
+
+    .quick-item.active,
+    .group-item.active {
+      border-color: rgba(37, 99, 235, 0.42);
+      box-shadow: 0 14px 26px rgba(37, 99, 235, 0.16);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,246,255,0.94));
+    }
+
+    .group-item .top,
+    .quick-item .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+      min-width: 0;
+    }
+
+    .group-item strong,
+    .quick-item strong {
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    .group-item .sub,
+    .quick-item .sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .group-item .bottom,
+    .quick-item .bottom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .hint {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .graph-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .graph-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 0;
+      min-width: 0;
+    }
+
+    .toolbar-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1.1;
+    }
+
+    .toolbar-btn:hover {
+      border-color: rgba(37, 99, 235, 0.28);
+    }
+
+    .toolbar-btn.active {
+      border-color: rgba(37, 99, 235, 0.42);
+      background: rgba(37, 99, 235, 0.10);
+      color: var(--accent);
+    }
+
+    .toolbar-btn.secondary {
+      background: rgba(248, 250, 252, 0.92);
+    }
+
+    .graph-info {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+
+    .graph-hint {
+      padding: 2px 12px 6px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .graph-viewport {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      margin: 0 12px 12px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.08), transparent 22%),
+        linear-gradient(180deg, rgba(255,255,255,0.88), rgba(247,250,255,0.96));
+      border: 1px solid rgba(148, 163, 184, 0.20);
+      position: relative;
+      scrollbar-gutter: stable both-edges;
+      z-index: 1;
+    }
+
+    .graph-overlay-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .graph-stage {
+      position: relative;
+      transform-origin: 0 0;
+      width: 0;
+      height: 0;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .graph-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .graph-node-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .edge-line {
+      fill: none;
+      stroke: rgba(71, 85, 105, 0.34);
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke .16s ease, stroke-width .16s ease, opacity .16s ease;
+    }
+
+    .edge-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 14;
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+
+    .edge-label rect {
+      fill: rgba(255,255,255,0.88);
+      stroke: rgba(148, 163, 184, 0.18);
+      stroke-width: 1;
+    }
+
+    .edge-label text {
+      font-size: 10px;
+      fill: var(--muted);
+    }
+
+    .edge.selected .edge-line {
+      stroke: var(--accent);
+      stroke-width: 3.6;
+    }
+
+    .edge.related .edge-line {
+      stroke: var(--primary);
+    }
+
+    .edge.filtered {
+      opacity: 0.18;
+    }
+
+    .graph-node {
+      position: absolute;
+      padding: 15px 15px 13px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      cursor: pointer;
+      text-align: left;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      min-width: 0;
+    }
+
+    .graph-node:hover {
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.30);
+      box-shadow: 0 14px 26px rgba(37, 99, 235, 0.10);
+    }
+
+    .graph-node.selected {
+      border-color: rgba(37, 99, 235, 0.42);
+      box-shadow: 0 16px 28px rgba(37, 99, 235, 0.14);
+    }
+
+    .graph-node.related {
+      border-color: rgba(15, 118, 110, 0.28);
+    }
+
+    .graph-node.filtered {
+      opacity: 0.26;
+    }
+
+    .graph-node.group-node {
+      border-color: rgba(37, 99, 235, 0.34);
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.10);
+    }
+
+    .graph-node.group-anchor {
+      border-color: rgba(37, 99, 235, 0.62);
+      box-shadow:
+        0 0 0 4px rgba(37, 99, 235, 0.10),
+        0 24px 42px rgba(37, 99, 235, 0.20);
+      transform: translateY(-3px) scale(1.04);
+      z-index: 5;
+      background: linear-gradient(180deg, rgba(255,255,255,0.99), rgba(239,246,255,0.98));
+    }
+
+    .graph-node.group-muted {
+      opacity: 0.14;
+      filter: grayscale(0.15) saturate(0.75);
+    }
+
+    .graph-node.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .graph-node.focus {
+      border-color: rgba(37, 99, 235, 0.56);
+      box-shadow:
+        0 0 0 4px rgba(37, 99, 235, 0.10),
+        0 22px 40px rgba(37, 99, 235, 0.18);
+      transform: translateY(-3px) scale(1.035);
+      z-index: 4;
+      background: linear-gradient(180deg, rgba(255,255,255,0.99), rgba(241,247,255,0.96));
+    }
+
+    .graph-node.neighbor-1 {
+      border-color: rgba(15, 118, 110, 0.38);
+      box-shadow: 0 14px 28px rgba(15, 118, 110, 0.12);
+      z-index: 2;
+    }
+
+    .graph-node.neighbor-2 {
+      border-color: rgba(148, 163, 184, 0.26);
+    }
+
+    .graph-node.alert {
+      border-color: rgba(220, 38, 38, 0.42);
+      box-shadow: 0 16px 30px rgba(220, 38, 38, 0.12);
+    }
+
+    .graph-node.dim {
+      opacity: 0.22;
+    }
+
+    .graph-node .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 0;
+    }
+
+    .graph-node .top span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .graph-node .name {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .graph-node.focus .name {
+      font-size: 15px;
+      line-height: 1.34;
+      -webkit-line-clamp: 4;
+    }
+
+    .graph-node .sub {
+      font-size: 12px;
+      color: var(--subtle);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .graph-node .bottom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .edge {
+      opacity: 1;
+    }
+
+    .edge.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .edge.group-edge .edge-line {
+      stroke: rgba(37, 99, 235, 0.62);
+      stroke-width: 2.8;
+    }
+
+    .edge.group-bridge .edge-line {
+      stroke: rgba(15, 118, 110, 0.42);
+      stroke-width: 2.2;
+    }
+
+    .edge.group-muted {
+      opacity: 0.08;
+    }
+
+    .edge.dim {
+      opacity: 0.16;
+    }
+
+    .edge.neighbor {
+      opacity: 0.55;
+    }
+
+    .edge.focus {
+      opacity: 1;
+    }
+
+    .edge.alert .edge-line {
+      stroke: rgba(220, 38, 38, 0.72);
+      stroke-width: 3.2;
+    }
+
+    .edge.neighbor .edge-line {
+      stroke: rgba(37, 99, 235, 0.46);
+      stroke-width: 2.2;
+    }
+
+    .edge.dim .edge-line {
+      stroke: rgba(71, 85, 105, 0.14);
+      stroke-width: 1.3;
+    }
+
+    .edge.focus .edge-line {
+      stroke: var(--accent);
+      stroke-width: 3.6;
+    }
+
+    .edge.label-hidden .edge-label {
+      opacity: 0;
+    }
+
+    .detail-head {
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      margin-bottom: 14px;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+
+    .detail-head h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .detail-head .sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-body {
+      display: grid;
+      gap: 12px;
+      overflow-wrap: anywhere;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+
+    .detail-card {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255,255,255,0.90);
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .detail-card h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-card .link-row {
+      align-items: flex-start;
+    }
+
+    .detail-card .badge {
+      max-width: 100%;
+    }
+
+    .detail-card .link-chip {
+      line-height: 1.35;
+    }
+
+    .kv {
+      display: grid;
+      gap: 8px;
+    }
+
+    .kv .item {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr);
+      gap: 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      min-width: 0;
+    }
+
+    .kv .key {
+      color: var(--muted);
+    }
+
+    .kv .item > div:last-child {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .block-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .block {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 14px;
+      background: rgba(248, 250, 252, 0.88);
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .mono {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.94);
+      color: #e2e8f0;
+      font-size: 11px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow: auto;
+    }
+
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .link-chip {
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+      min-width: 0;
+      white-space: normal;
+    }
+
+    .link-chip:hover {
+      border-color: rgba(37, 99, 235, 0.28);
+    }
+
+    .minimap {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      width: 168px;
+      height: 104px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(255,255,255,0.82);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+
+    .minimap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .minimap .frame {
+      fill: none;
+      stroke: rgba(37, 99, 235, 0.82);
+      stroke-width: 1.6;
+      rx: 8;
+    }
+
+    .minimap .backdrop {
+      fill: rgba(248, 250, 252, 0.94);
+    }
+
+    .minimap .node-dot {
+      stroke: rgba(255,255,255,0.85);
+      stroke-width: 1;
+    }
+
+    .empty {
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px dashed rgba(148, 163, 184, 0.34);
+      background: rgba(248, 250, 252, 0.84);
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1240px) {
+      body { overflow: auto; }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .sidebar,
+      .detail-panel {
+        position: static;
+        max-height: none;
+      }
+      .graph-panel {
+        min-height: 78vh;
+      }
+      .hero-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 1024px) and (max-width: 1439px) {
+      :root {
+        --detail-w: 320px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        padding: 12px 12px 10px;
+      }
+      .main-grid {
+        padding: 0 12px 12px;
+      }
+      .hero-card {
+        padding: 16px;
+      }
+      .graph-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .minimap {
+        width: 126px;
+        height: 80px;
+        right: 10px;
+        bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="hero-card">
+        <div class="title-block">
+          <h1>__PAGE_TITLE__</h1>
+          <p>__PAGE_SUBTITLE__</p>
+          <div class="meta-line" id="meta-line"></div>
+        </div>
+        <div class="stats-grid" id="top-stats"></div>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <aside class="panel sidebar">
+        <div class="panel-inner">
+          <div class="sidebar-block">
+            <h3 class="section-title">搜索</h3>
+            <input id="search" class="search" type="search" placeholder="搜索 step_id / 名称 / 条件 / 内容" />
+          </div>
+
+          <div class="sidebar-block">
+            <h3 class="section-title">入口节点</h3>
+            <div class="quick-list" id="start-list"></div>
+          </div>
+
+          <div class="sidebar-block">
+            <h3 class="section-title">分组导航</h3>
+            <div class="group-list" id="group-list"></div>
+          </div>
+
+          <div class="sidebar-block">
+            <div class="hint">
+              点击节点看详细信息，点击边看跳转条件。右侧面板会显示评估结果，图面支持缩放和滚动。
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel graph-panel">
+        <div class="graph-toolbar">
+          <div class="toolbar-group">
+            <button class="toolbar-btn secondary" data-view="local">当前子图</button>
+            <button class="toolbar-btn secondary" data-view="full">全图</button>
+            <button class="toolbar-btn secondary" data-view="anomaly">异常路径</button>
+            <button class="toolbar-btn" data-action="focus-current">回到当前节点</button>
+            <button class="toolbar-btn" data-zoom="out">缩小</button>
+            <button class="toolbar-btn" data-zoom="fit">适配</button>
+            <button class="toolbar-btn" data-zoom="in">放大</button>
+            <button class="toolbar-btn" data-zoom="reset">1:1</button>
+          </div>
+          <div class="graph-info" id="graph-info"></div>
+        </div>
+        <div class="graph-hint" id="graph-hint"></div>
+        <div class="graph-viewport" id="graph-viewport">
+          <div class="graph-stage" id="graph-stage">
+            <svg class="graph-svg" id="graph-svg"></svg>
+            <div class="graph-node-layer" id="graph-node-layer"></div>
+          </div>
+        </div>
+        <div class="graph-overlay-layer">
+          <div class="minimap" id="minimap"></div>
+        </div>
+      </section>
+
+      <aside class="panel detail-panel" id="detail-panel">
+        <div class="detail-head">
+          <h2 id="detail-title">点击一个节点或边查看详情</h2>
+          <div class="sub" id="detail-subtitle">这里会显示 YAML 节点、跳转边和评估结果的详细信息。</div>
+        </div>
+        <div class="detail-body" id="detail-body">
+          <div class="empty">尚未选择内容</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script id="workflow-data" type="application/json">__WORKFLOW_VIEWER_DATA__</script>
+  <script>
+    const DATA = JSON.parse(document.getElementById('workflow-data').textContent);
+    const GRAPH = DATA.graph || { width: 1600, height: 1200, edges: [] };
+    const NODE_BY_ID = Object.fromEntries([...DATA.nodes, ...DATA.conclusion_nodes].map((node) => [node.id, node]));
+    const EDGE_BY_ID = Object.fromEntries((GRAPH.edges || []).map((edge) => [edge.id, edge]));
+    const GROUP_BY_ID = Object.fromEntries((DATA.groups || []).map((group) => [group.id, group]));
+    const OUTGOING = {};
+    const INCOMING = {};
+
+    for (const edge of GRAPH.edges || []) {
+      if (!OUTGOING[edge.source]) OUTGOING[edge.source] = [];
+      OUTGOING[edge.source].push(edge);
+      if (!INCOMING[edge.target]) INCOMING[edge.target] = [];
+      INCOMING[edge.target].push(edge);
+    }
+
+    const STATE = {
+      kind: 'node',
+      id: DATA.meta.start_nodes[0] || (DATA.nodes[0] && DATA.nodes[0].id) || (DATA.conclusion_nodes[0] && DATA.conclusion_nodes[0].id) || '',
+      query: '',
+      zoom: 1,
+      viewMode: 'local',
+    };
+
+    const GRAPH_VIEW = {
+      mode: 'local',
+      focusIds: [],
+      groupId: '',
+      groupNodeIds: new Set(),
+      anchorId: '',
+      visibleNodes: new Set(),
+      visibleEdges: new Set(),
+      nodeDistance: new Map(),
+      edgeDistance: new Map(),
+      bounds: { x: 0, y: 0, width: GRAPH.width, height: GRAPH.height },
+      focusBounds: { x: 0, y: 0, width: GRAPH.width, height: GRAPH.height },
+      anomalySeedCount: 0,
+      groupSummary: null,
+    };
+
+    function escapeHtml(text) {
+      return String(text ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function severityClass(counts = {}) {
+      if ((counts.critical || 0) > 0) return 'badge-critical';
+      if ((counts.warning || 0) > 0) return 'badge-warning';
+      if ((counts.info || 0) > 0) return 'badge-accent';
+      return 'badge-primary';
+    }
+
+    function summaryText(counts = {}) {
+      const parts = [];
+      if (counts.critical) parts.push(`严重 ${counts.critical}`);
+      if (counts.warning) parts.push(`警告 ${counts.warning}`);
+      if (counts.info) parts.push(`提示 ${counts.info}`);
+      return parts.length ? parts.join(' · ') : '无问题';
+    }
+
+    function textMatchesQuery(node) {
+      if (!STATE.query) return true;
+      const haystack = [
+        node.id,
+        node.name,
+        node.content,
+        node.step_file,
+        node.type_label,
+        node.group_title,
+        JSON.stringify(node.skills || []),
+        JSON.stringify(node.transitions || []),
+      ].join(' ').toLowerCase();
+      return haystack.includes(STATE.query.toLowerCase());
+    }
+
+    function edgeMatchesQuery(edge) {
+      if (!STATE.query) return true;
+      const haystack = [
+        edge.id,
+        edge.source,
+        edge.target,
+        edge.kind,
+        edge.description,
+        edge.condition,
+        (edge.display_lines || []).join(' '),
+      ].join(' ').toLowerCase();
+      return haystack.includes(STATE.query.toLowerCase());
+    }
+
+    function nodeIsRelated(nodeId) {
+      if (!STATE.id) return false;
+      if (STATE.kind === 'node') {
+        if (nodeId === STATE.id) return true;
+        return (OUTGOING[STATE.id] || []).some((edge) => edge.target === nodeId) || (INCOMING[STATE.id] || []).some((edge) => edge.source === nodeId);
+      }
+      if (STATE.kind === 'group') {
+        const group = GROUP_BY_ID[STATE.id];
+        if (!group) return false;
+        return (group.step_ids || []).includes(nodeId);
+      }
+      const edge = EDGE_BY_ID[STATE.id];
+      if (!edge) return false;
+      return edge.source === nodeId || edge.target === nodeId;
+    }
+
+    function edgeIsRelated(edge) {
+      if (!STATE.id) return false;
+      if (STATE.kind === 'edge') {
+        return edge.id === STATE.id;
+      }
+      if (STATE.kind === 'group') {
+        const group = GROUP_BY_ID[STATE.id];
+        if (!group) return false;
+        const nodeSet = new Set(group.step_ids || []);
+        return nodeSet.has(edge.source) || nodeSet.has(edge.target);
+      }
+      return edge.source === STATE.id || edge.target === STATE.id;
+    }
+
+    function getNodeIssueTotal(node) {
+      if (!node) return 0;
+      const counts = node.issue_counts || {};
+      return (counts.critical || 0) + (counts.warning || 0) + (counts.info || 0);
+    }
+
+    function getNodeSeverity(node) {
+      if (!node) return 'none';
+      const counts = node.issue_counts || {};
+      if ((counts.critical || 0) > 0) return 'critical';
+      if ((counts.warning || 0) > 0) return 'warning';
+      if ((counts.info || 0) > 0) return 'info';
+      return 'none';
+    }
+
+    function getActiveGroup() {
+      if (STATE.kind === 'group') {
+        return GROUP_BY_ID[STATE.id] || null;
+      }
+      if (STATE.kind === 'node') {
+        const node = NODE_BY_ID[STATE.id];
+        if (node && node.group_id && node.group_id !== 'group_conclusions') {
+          return GROUP_BY_ID[node.group_id] || null;
+        }
+      }
+      return null;
+    }
+
+    function getFocusNodeIds() {
+      if (STATE.kind === 'edge') {
+        const edge = EDGE_BY_ID[STATE.id];
+        if (!edge) return [];
+        return [edge.source, edge.target].filter(Boolean);
+      }
+      if (STATE.kind === 'group') {
+        const group = GROUP_BY_ID[STATE.id];
+        return (group && group.step_ids) ? group.step_ids.slice() : [];
+      }
+      return STATE.id ? [STATE.id] : [];
+    }
+
+    function collectNeighborhood(seedIds, maxDepth) {
+      const distance = new Map();
+      const queue = [];
+      for (const id of seedIds) {
+        if (!NODE_BY_ID[id]) continue;
+        distance.set(id, 0);
+        queue.push(id);
+      }
+
+      while (queue.length) {
+        const current = queue.shift();
+        const currentDepth = distance.get(current);
+        if (currentDepth >= maxDepth) continue;
+        const neighbors = new Set();
+        for (const edge of OUTGOING[current] || []) neighbors.add(edge.target);
+        for (const edge of INCOMING[current] || []) neighbors.add(edge.source);
+        neighbors.forEach((neighbor) => {
+          if (!NODE_BY_ID[neighbor]) return;
+          const nextDepth = currentDepth + 1;
+          if (!distance.has(neighbor) || nextDepth < distance.get(neighbor)) {
+            distance.set(neighbor, nextDepth);
+            queue.push(neighbor);
+          }
+        });
+      }
+
+      return distance;
+    }
+
+    function computeBounds(nodeIds, padding = 72) {
+      const layouts = nodeIds.map((id) => NODE_BY_ID[id] && NODE_BY_ID[id].graph_layout).filter(Boolean);
+      if (!layouts.length) {
+        return { x: 0, y: 0, width: GRAPH.width, height: GRAPH.height };
+      }
+      const minX = Math.min(...layouts.map((layout) => layout.x));
+      const minY = Math.min(...layouts.map((layout) => layout.y));
+      const maxX = Math.max(...layouts.map((layout) => layout.x + layout.width));
+      const maxY = Math.max(...layouts.map((layout) => layout.y + layout.height));
+      return {
+        x: Math.max(0, minX - padding),
+        y: Math.max(0, minY - padding),
+        width: Math.min(GRAPH.width, (maxX - minX) + padding * 2),
+        height: Math.min(GRAPH.height, (maxY - minY) + padding * 2),
+      };
+    }
+
+    function computeGraphView() {
+      const focusIds = getFocusNodeIds();
+      const anomalyIds = DATA.nodes.filter((node) => getNodeIssueTotal(node) > 0).map((node) => node.id);
+      const activeGroup = getActiveGroup();
+      let mode = STATE.kind === 'group' ? 'group' : STATE.viewMode;
+      const focusBaseIds = focusIds.length ? focusIds : [DATA.meta.start_nodes[0]].filter(Boolean);
+      let seedIds = focusBaseIds.slice();
+      const anchorId = activeGroup?.step_ids?.[0] || focusBaseIds[0] || DATA.meta.start_nodes[0] || DATA.nodes[0]?.id || DATA.conclusion_nodes[0]?.id || '';
+      const allNodeIds = [...DATA.nodes, ...DATA.conclusion_nodes].map((node) => node.id);
+
+      if (mode === 'anomaly' && anomalyIds.length) {
+        seedIds = Array.from(new Set([...seedIds, ...anomalyIds]));
+      }
+      if (mode === 'group' && activeGroup) {
+        const groupNodeIds = new Set(activeGroup.step_ids || []);
+        const groupRankedNodes = (activeGroup.step_ids || [])
+          .map((id) => NODE_BY_ID[id])
+          .filter(Boolean)
+          .sort((a, b) => getNodeIssueTotal(b) - getNodeIssueTotal(a) || (a.order || 0) - (b.order || 0));
+        const groupAnchorId = groupRankedNodes[0]?.id || activeGroup.step_ids?.[0] || anchorId;
+        const distances = collectNeighborhood(activeGroup.step_ids || [], 1);
+        const visibleEdges = new Set((GRAPH.edges || []).map((edge) => edge.id));
+        const edgeDistances = new Map((GRAPH.edges || []).map((edge) => [edge.id, Math.min(distances.get(edge.source) ?? 99, distances.get(edge.target) ?? 99)]));
+        GRAPH_VIEW.mode = mode;
+        GRAPH_VIEW.focusIds = activeGroup.step_ids || [];
+        GRAPH_VIEW.groupId = activeGroup.id;
+        GRAPH_VIEW.groupNodeIds = groupNodeIds;
+        GRAPH_VIEW.anchorId = groupAnchorId;
+        GRAPH_VIEW.visibleNodes = new Set(allNodeIds);
+        GRAPH_VIEW.visibleEdges = visibleEdges;
+        GRAPH_VIEW.nodeDistance = distances;
+        GRAPH_VIEW.edgeDistance = edgeDistances;
+        GRAPH_VIEW.bounds = computeBounds(allNodeIds, 72);
+        GRAPH_VIEW.focusBounds = computeBounds(activeGroup.step_ids || [], 56);
+        GRAPH_VIEW.anomalySeedCount = anomalyIds.length;
+        GRAPH_VIEW.groupSummary = activeGroup;
+        return;
+      }
+      if (mode === 'full') {
+        const distances = collectNeighborhood(seedIds, 999);
+        GRAPH_VIEW.mode = mode;
+        GRAPH_VIEW.focusIds = seedIds;
+        GRAPH_VIEW.groupId = '';
+        GRAPH_VIEW.groupNodeIds = new Set();
+        GRAPH_VIEW.groupSummary = null;
+        GRAPH_VIEW.visibleNodes = new Set(allNodeIds);
+        GRAPH_VIEW.visibleEdges = new Set((GRAPH.edges || []).map((edge) => edge.id));
+        GRAPH_VIEW.nodeDistance = distances;
+        GRAPH_VIEW.edgeDistance = new Map((GRAPH.edges || []).map((edge) => [edge.id, Math.min(distances.get(edge.source) ?? 99, distances.get(edge.target) ?? 99)]));
+        GRAPH_VIEW.bounds = computeBounds(allNodeIds, 72);
+        GRAPH_VIEW.focusBounds = computeBounds(focusBaseIds, 72);
+        GRAPH_VIEW.anchorId = anchorId;
+        GRAPH_VIEW.anomalySeedCount = anomalyIds.length;
+        return;
+      }
+
+      const maxDepth = 2;
+      const distances = collectNeighborhood(seedIds.length ? seedIds : [STATE.id].filter(Boolean), maxDepth);
+      if (!distances.size && DATA.nodes.length) {
+        seedIds = [DATA.nodes[0].id];
+      }
+      const visibleIds = new Set(distances.size ? distances.keys() : seedIds);
+      const focusDistances = collectNeighborhood(focusBaseIds.length ? focusBaseIds : [STATE.id].filter(Boolean), 1);
+      const focusVisibleIds = new Set(focusDistances.size ? focusDistances.keys() : focusBaseIds);
+      if (mode === 'anomaly' && anomalyIds.length) {
+        const anomalyDistances = collectNeighborhood(anomalyIds, 1);
+        anomalyDistances.forEach((depth, id) => {
+          visibleIds.add(id);
+          if (!distances.has(id) || depth < distances.get(id)) {
+            distances.set(id, depth + 1);
+          }
+        });
+      }
+
+      const visibleEdges = new Set();
+      const edgeDistances = new Map();
+      for (const edge of GRAPH.edges || []) {
+        if (visibleIds.has(edge.source) && visibleIds.has(edge.target)) {
+          visibleEdges.add(edge.id);
+          edgeDistances.set(edge.id, Math.min(distances.get(edge.source) ?? 99, distances.get(edge.target) ?? 99));
+        }
+      }
+
+      GRAPH_VIEW.mode = mode;
+      GRAPH_VIEW.focusIds = seedIds;
+      GRAPH_VIEW.groupId = '';
+      GRAPH_VIEW.groupNodeIds = new Set();
+      GRAPH_VIEW.groupSummary = null;
+      GRAPH_VIEW.visibleNodes = visibleIds;
+      GRAPH_VIEW.visibleEdges = visibleEdges;
+      GRAPH_VIEW.nodeDistance = distances;
+      GRAPH_VIEW.edgeDistance = edgeDistances;
+      GRAPH_VIEW.bounds = computeBounds(Array.from(visibleIds), 68);
+      GRAPH_VIEW.focusBounds = computeBounds(Array.from(focusVisibleIds), 48);
+      GRAPH_VIEW.anchorId = anchorId;
+      GRAPH_VIEW.anomalySeedCount = anomalyIds.length;
+    }
+
+    function renderViewButtons() {
+      document.querySelectorAll('[data-view]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.view === STATE.viewMode);
+      });
+    }
+
+    function getFocusLabel() {
+      if (STATE.kind === 'edge') {
+        const edge = EDGE_BY_ID[STATE.id];
+        if (!edge) return '未选择边';
+        return `${edge.source} → ${edge.target}`;
+      }
+      return STATE.id || '未选择节点';
+    }
+
+    function renderMiniMap() {
+      const host = document.getElementById('minimap');
+      const viewport = document.getElementById('graph-viewport');
+      if (!host || !viewport) return;
+
+      const nodeIds = [...DATA.nodes, ...DATA.conclusion_nodes].map((node) => node.id);
+      const viewBoxWidth = GRAPH.width;
+      const viewBoxHeight = GRAPH.height;
+      const viewLeft = viewport.scrollLeft / Math.max(STATE.zoom, 0.0001);
+      const viewTop = viewport.scrollTop / Math.max(STATE.zoom, 0.0001);
+      const viewWidth = viewport.clientWidth / Math.max(STATE.zoom, 0.0001);
+      const viewHeight = viewport.clientHeight / Math.max(STATE.zoom, 0.0001);
+
+      host.innerHTML = `
+        <svg viewBox="0 0 ${viewBoxWidth} ${viewBoxHeight}" preserveAspectRatio="none" aria-hidden="true">
+          <rect class="backdrop" x="0" y="0" width="${viewBoxWidth}" height="${viewBoxHeight}"></rect>
+          ${nodeIds.map((id) => {
+            const node = NODE_BY_ID[id];
+            if (!node || !node.graph_layout) return '';
+            const severity = getNodeSeverity(node);
+            const fill = severity === 'critical'
+              ? 'rgba(220,38,38,0.78)'
+              : severity === 'warning'
+                ? 'rgba(217,119,6,0.74)'
+                : severity === 'info'
+                  ? 'rgba(37,99,235,0.52)'
+                  : 'rgba(100,116,139,0.34)';
+            const opacity = GRAPH_VIEW.visibleNodes.has(id) ? 1 : 0.28;
+            return `<rect class="node-dot" x="${node.graph_layout.x}" y="${node.graph_layout.y}" width="${node.graph_layout.width}" height="${node.graph_layout.height}" rx="6" fill="${fill}" opacity="${opacity}"></rect>`;
+          }).join('')}
+          <rect class="frame" x="${viewLeft}" y="${viewTop}" width="${viewWidth}" height="${viewHeight}" rx="10"></rect>
+        </svg>
+      `;
+
+      host.onclick = (event) => {
+        const rect = host.getBoundingClientRect();
+        const x = clamp((event.clientX - rect.left) / rect.width * GRAPH.width, 0, GRAPH.width);
+        const y = clamp((event.clientY - rect.top) / rect.height * GRAPH.height, 0, GRAPH.height);
+        const targetLeft = Math.max(0, x * STATE.zoom - viewport.clientWidth / 2);
+        const targetTop = Math.max(0, y * STATE.zoom - viewport.clientHeight / 2);
+        viewport.scrollLeft = targetLeft;
+        viewport.scrollTop = targetTop;
+      };
+    }
+
+    function updateGraphInfo() {
+      const focusLabel = getFocusLabel();
+      const visibleNodeCount = GRAPH_VIEW.visibleNodes.size || (DATA.nodes.length + DATA.conclusion_nodes.length);
+      const visibleEdgeCount = GRAPH_VIEW.visibleEdges.size || (GRAPH.edges || []).length;
+      const group = GRAPH_VIEW.mode === 'group' ? GROUP_BY_ID[GRAPH_VIEW.groupId] || GRAPH_VIEW.groupSummary : null;
+      const modeLabel = GRAPH_VIEW.mode === 'group'
+        ? `分组聚焦 · ${group?.title || focusLabel}`
+        : GRAPH_VIEW.mode === 'local'
+          ? '当前子图'
+          : GRAPH_VIEW.mode === 'full'
+            ? '全图'
+            : '异常路径';
+      const detail = GRAPH_VIEW.mode === 'group'
+        ? `${group?.range || '分组范围'} · ${group?.description || '分组聚焦模式'}`
+        : GRAPH_VIEW.mode === 'local'
+          ? '显示当前节点及上下游 1~2 层'
+          : GRAPH_VIEW.mode === 'full'
+            ? '显示完整 workflow 结构'
+            : `突出异常节点与相关上下游（异常种子 ${GRAPH_VIEW.anomalySeedCount} 个）`;
+      const graphPanel = document.querySelector('.graph-panel');
+      if (graphPanel) {
+        graphPanel.dataset.mode = GRAPH_VIEW.mode;
+      }
+      document.getElementById('graph-info').textContent = `${modeLabel} · ${focusLabel} · ${visibleNodeCount} 节点 / ${visibleEdgeCount} 边 · zoom ${Math.round(STATE.zoom * 100)}%`;
+      document.getElementById('graph-hint').textContent = detail;
+      renderViewButtons();
+    }
+
+    function renderTop() {
+      const issueTotal = DATA.issue_summary?.total || 0;
+      const items = [
+        [DATA.meta.step_count, '节点数'],
+        [DATA.meta.conclusion_count, '结论数'],
+        [DATA.edge_count, '边数'],
+        [issueTotal, '已知问题'],
+      ];
+      document.getElementById('top-stats').innerHTML = items.map(([value, label]) => `
+        <div class="stat">
+          <div class="value">${escapeHtml(value)}</div>
+          <div class="label">${escapeHtml(label)}</div>
+        </div>
+      `).join('');
+
+      const meta = [
+        ['workflow_id', DATA.meta.workflow_id || '未命名'],
+        ['version', DATA.meta.version || '—'],
+        ['start_nodes', (DATA.meta.start_nodes || []).join(', ') || '—'],
+      ];
+      document.getElementById('meta-line').innerHTML = meta.map(([key, value]) => `
+        <div class="meta-item">
+          <div class="key">${escapeHtml(key)}</div>
+          <div class="value">${escapeHtml(value)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderStartList() {
+      const container = document.getElementById('start-list');
+      const startNodes = (DATA.meta.start_nodes || []).map((id) => NODE_BY_ID[id]).filter(Boolean);
+      if (!startNodes.length) {
+        container.innerHTML = '<div class="empty">没有入口节点。</div>';
+        return;
+      }
+      container.innerHTML = startNodes.map((node) => `
+        <button class="quick-item ${STATE.kind === 'node' && STATE.id === node.id ? 'active' : ''}" data-node-id="${escapeHtml(node.id)}">
+          <div class="top">
+            <strong>${escapeHtml(node.id)}</strong>
+            <span class="badge ${severityClass(node.issue_counts)}">${escapeHtml(summaryText(node.issue_counts))}</span>
+          </div>
+          <div class="sub">${escapeHtml(node.name)}</div>
+        </button>
+      `).join('');
+
+      container.querySelectorAll('[data-node-id]').forEach((btn) => {
+        btn.addEventListener('click', () => focusNode(btn.dataset.nodeId, true));
+      });
+    }
+
+    function renderGroupList() {
+      const container = document.getElementById('group-list');
+      const groups = DATA.groups.filter((group) => group.id !== 'group_conclusions');
+      container.innerHTML = groups.map((group) => `
+        <button class="group-item ${STATE.kind === 'group' && STATE.id === group.id ? 'active' : ''}" data-group-id="${escapeHtml(group.id)}">
+          <div class="top">
+            <strong>${escapeHtml(group.title)}</strong>
+            <span class="badge ${severityClass(group.issue_counts)}">${escapeHtml(summaryText(group.issue_counts))}</span>
+          </div>
+          <div class="sub">${escapeHtml(group.range)} · ${escapeHtml(group.description)}</div>
+          <div class="bottom">
+            <span class="badge badge-muted">${(group.step_ids || []).length} 节点</span>
+          </div>
+        </button>
+      `).join('');
+
+      container.querySelectorAll('[data-group-id]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const group = DATA.groups.find((item) => item.id === btn.dataset.groupId);
+          if (!group) return;
+          focusGroup(group.id, true);
+        });
+      });
+    }
+
+    function buildEdgeMarkup(edge) {
+      const labelLines = edge.display_lines || [edge.description || edge.kind];
+      const firstLen = Math.max(...labelLines.map((line) => String(line).length), 10);
+      const labelWidth = clamp(126 + firstLen * 7.5, 140, 300);
+      const labelHeight = clamp(20 + labelLines.length * 14, 28, 48);
+      const labelX = edge.layout.label_x;
+      const labelY = edge.layout.label_y;
+      const sourceDistance = GRAPH_VIEW.nodeDistance.get(edge.source);
+      const targetDistance = GRAPH_VIEW.nodeDistance.get(edge.target);
+      const minDistance = Math.min(sourceDistance ?? 99, targetDistance ?? 99);
+      const isFocus = STATE.kind === 'edge' && STATE.id === edge.id;
+      const isVisible = GRAPH_VIEW.mode === 'full' || GRAPH_VIEW.visibleEdges.has(edge.id);
+      const isAlert = getNodeSeverity(NODE_BY_ID[edge.source]) !== 'none' || getNodeSeverity(NODE_BY_ID[edge.target]) !== 'none';
+      const isQueryMatched = !STATE.query || edgeMatchesQuery(edge) || nodeMatchesEdgeContext(edge);
+      const isGroupScope = GRAPH_VIEW.mode === 'group';
+      const sourceInGroup = GRAPH_VIEW.groupNodeIds.has(edge.source);
+      const targetInGroup = GRAPH_VIEW.groupNodeIds.has(edge.target);
+      const isGroupEdge = isGroupScope && sourceInGroup && targetInGroup;
+      const isGroupBridge = isGroupScope && (sourceInGroup || targetInGroup) && !isGroupEdge;
+      const showLabel = GRAPH_VIEW.mode === 'full'
+        || isFocus
+        || minDistance <= 1
+        || (GRAPH_VIEW.mode === 'anomaly' && isAlert && minDistance <= 2)
+        || isGroupEdge
+        || isGroupBridge
+        || STATE.kind === 'edge';
+      const classes = [
+        isVisible ? '' : 'hidden',
+        isFocus ? 'focus' : '',
+        isAlert ? 'alert' : '',
+        isVisible && !isFocus && minDistance <= 1 ? 'neighbor' : '',
+        isVisible && !isFocus && minDistance > 1 ? 'dim' : '',
+        STATE.query && !isQueryMatched ? 'dim' : '',
+        isGroupEdge ? 'group-edge' : '',
+        isGroupBridge ? 'group-bridge' : '',
+        isGroupScope && !isGroupEdge && !isGroupBridge ? 'group-muted' : '',
+        showLabel ? '' : 'label-hidden',
+      ].filter(Boolean).join(' ');
+      const title = labelLines.join(' / ');
+      return `
+        <g class="edge ${classes}" data-edge-id="${escapeHtml(edge.id)}" title="${escapeHtml(title)}">
+          <path class="edge-hit" d="${escapeHtml(edge.layout.path)}"></path>
+          <path class="edge-line" d="${escapeHtml(edge.layout.path)}" marker-end="url(#arrow-head)"></path>
+          <g class="edge-label" transform="translate(${labelX}, ${labelY})">
+            <rect x="${-labelWidth / 2}" y="${-labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" rx="9"></rect>
+            ${labelLines.map((line, index) => `
+              <text text-anchor="middle" dominant-baseline="middle" y="${index * 14 - ((labelLines.length - 1) * 7)}">${escapeHtml(line)}</text>
+            `).join('')}
+          </g>
+        </g>
+      `;
+    }
+
+    function nodeMatchesEdgeContext(edge) {
+      const source = NODE_BY_ID[edge.source];
+      const target = NODE_BY_ID[edge.target];
+      return Boolean((source && textMatchesQuery(source)) || (target && textMatchesQuery(target)));
+    }
+
+    function buildNodeMarkup(node) {
+      const layout = node.graph_layout;
+      const distance = GRAPH_VIEW.nodeDistance.get(node.id);
+      const isFocus = STATE.kind === 'node' && STATE.id === node.id;
+      const isVisible = GRAPH_VIEW.mode === 'full' || GRAPH_VIEW.visibleNodes.has(node.id);
+      const isAlert = getNodeSeverity(node) !== 'none';
+      const isQueryMatched = !STATE.query || textMatchesQuery(node);
+      const isGroupScope = GRAPH_VIEW.mode === 'group';
+      const isGroupNode = isGroupScope && GRAPH_VIEW.groupNodeIds.has(node.id);
+      const isGroupAnchor = isGroupNode && node.id === GRAPH_VIEW.anchorId;
+      const classes = [
+        isVisible ? '' : 'hidden',
+        isFocus ? 'focus' : '',
+        isAlert ? 'alert' : '',
+        isVisible && !isFocus && distance === 1 ? 'neighbor-1' : '',
+        isVisible && !isFocus && distance === 2 ? 'neighbor-2' : '',
+        isVisible && !isFocus && distance > 2 ? 'dim' : '',
+        STATE.query && !isQueryMatched ? 'dim' : '',
+        isGroupNode ? 'group-node' : '',
+        isGroupAnchor ? 'group-anchor' : '',
+        isGroupScope && !isGroupNode ? 'group-muted' : '',
+      ].filter(Boolean).join(' ');
+      const issueCounts = node.issue_counts || {};
+      const startBadge = (DATA.meta.start_nodes || []).includes(node.id) ? '<span class="badge badge-primary">入口</span>' : '';
+      const levelBadge = isGroupAnchor
+        ? '<span class="badge badge-accent">焦点</span>'
+        : isFocus
+        ? '<span class="badge badge-accent">当前</span>'
+        : node.type === 'conclusion'
+          ? `<span class="badge ${node.level === 'error' ? 'badge-critical' : node.level === 'warning' ? 'badge-warning' : 'badge-accent'}">${escapeHtml(node.level || 'info')}</span>`
+          : `<span class="badge badge-muted">${escapeHtml(node.type_label || node.type)}</span>`;
+      const bottomBadges = [
+        `<span class="badge ${severityClass(issueCounts)}">${escapeHtml(summaryText(issueCounts))}</span>`,
+        startBadge,
+      ].filter(Boolean).join('');
+      const subtitle = node.type === 'step'
+        ? `${node.group_title} · ${node.step_file}`
+        : `结论节点 · ${node.repair_action || '无修复动作'}`
+      ;
+      return `
+        <button
+          class="graph-node ${classes}"
+          data-node-id="${escapeHtml(node.id)}"
+          data-group-id="${escapeHtml(node.group_id || 'group_conclusions')}"
+          style="left:${layout.x}px; top:${layout.y}px; width:${layout.width}px; height:${layout.height}px;"
+          title="${escapeHtml(node.id)}"
+        >
+          <div class="top">
+            <span>${escapeHtml(node.id)}</span>
+            ${levelBadge}
+          </div>
+          <p class="name">${escapeHtml(node.name)}</p>
+          <div class="sub">${escapeHtml(subtitle)}</div>
+          <div class="bottom">${bottomBadges}</div>
+        </button>
+      `;
+    }
+
+    function getGroupRankedNodes(group) {
+      return (group?.step_ids || [])
+        .map((id) => NODE_BY_ID[id])
+        .filter(Boolean)
+        .sort((a, b) => getNodeIssueTotal(b) - getNodeIssueTotal(a) || (a.order || 0) - (b.order || 0));
+    }
+
+    function getGroupRelatedEdges(group) {
+      const nodeSet = new Set(group?.step_ids || []);
+      return (GRAPH.edges || [])
+        .filter((edge) => nodeSet.has(edge.source) || nodeSet.has(edge.target))
+        .sort((a, b) => {
+          const aScore = (nodeSet.has(a.source) && nodeSet.has(a.target) ? 2 : 1) + Math.min(
+            getNodeIssueTotal(NODE_BY_ID[a.source]),
+            getNodeIssueTotal(NODE_BY_ID[a.target]),
+          );
+          const bScore = (nodeSet.has(b.source) && nodeSet.has(b.target) ? 2 : 1) + Math.min(
+            getNodeIssueTotal(NODE_BY_ID[b.source]),
+            getNodeIssueTotal(NODE_BY_ID[b.target]),
+          );
+          return bScore - aScore;
+        });
+    }
+
+    function renderGroupSummary(group) {
+      const rankedNodes = getGroupRankedNodes(group);
+      const relatedEdges = getGroupRelatedEdges(group);
+      const keyNodes = rankedNodes.filter((node) => getNodeIssueTotal(node) > 0).slice(0, 6);
+      const recommendedNodes = (keyNodes.length ? keyNodes : rankedNodes).slice(0, 4);
+      const recommendedPaths = relatedEdges.slice(0, 4);
+      const issueCounts = group.issue_counts || { critical: 0, warning: 0, info: 0 };
+      const nodeCount = (group.step_ids || []).length;
+      return `
+        <div class="detail-card">
+          <h3>分组概览</h3>
+          <div class="kv">
+            <div class="item"><div class="key">分组名称</div><div>${escapeHtml(group.title || '—')}</div></div>
+            <div class="item"><div class="key">分组范围</div><div>${escapeHtml(group.range || '—')}</div></div>
+            <div class="item"><div class="key">分组说明</div><div>${escapeHtml(group.description || '—')}</div></div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>分组统计</h3>
+          <div class="link-row">
+            <span class="badge badge-muted">${nodeCount} 个节点</span>
+            <span class="badge ${severityClass(issueCounts)}">${escapeHtml(summaryText(issueCounts))}</span>
+            <span class="badge badge-muted">严重 ${issueCounts.critical || 0}</span>
+            <span class="badge badge-muted">警告 ${issueCounts.warning || 0}</span>
+            <span class="badge badge-muted">提示 ${issueCounts.info || 0}</span>
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>关键异常节点</h3>
+          <div class="link-row">
+            ${keyNodes.length ? keyNodes.map((node) => `
+              <button class="link-chip" data-node-jump="${escapeHtml(node.id)}">
+                ${escapeHtml(node.id)} · ${escapeHtml(node.name)}
+              </button>
+            `).join('') : '<span class="badge badge-muted">当前分组暂无告警节点</span>'}
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>推荐先查看的节点</h3>
+          <div class="link-row">
+            ${recommendedNodes.length ? recommendedNodes.map((node) => `
+              <button class="link-chip" data-node-jump="${escapeHtml(node.id)}">
+                ${escapeHtml(node.id)} · ${escapeHtml(node.name)}
+              </button>
+            `).join('') : '<span class="badge badge-muted">无推荐节点</span>'}
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>推荐先看的路径</h3>
+          <div class="block-list">
+            ${recommendedPaths.length ? recommendedPaths.map((edge) => `
+              <div class="block">
+                <div><strong>${escapeHtml(edge.source)} → ${escapeHtml(edge.target)}</strong></div>
+                <div style="margin-top:6px">${escapeHtml(edge.description || edge.kind || '—')}</div>
+                <div style="margin-top:6px;color:var(--muted);overflow-wrap:anywhere;">
+                  条件：${escapeHtml(edge.condition || '（空）')}
+                </div>
+              </div>
+            `).join('') : '<div class="empty">当前分组暂无可推荐路径。</div>'}
+          </div>
+        </div>
+        <div class="detail-card">
+          <h3>包含节点</h3>
+          <div class="block-list">
+            <div class="block">
+              <div class="link-row">
+                ${rankedNodes.length ? rankedNodes.map((node) => `
+                  <button class="link-chip" data-node-jump="${escapeHtml(node.id)}">${escapeHtml(node.id)}</button>
+                `).join('') : '<span class="badge badge-muted">空分组</span>'}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGraph() {
+      computeGraphView();
+      const stage = document.getElementById('graph-stage');
+      const svg = document.getElementById('graph-svg');
+      const nodeLayer = document.getElementById('graph-node-layer');
+
+      stage.style.width = `${GRAPH.width}px`;
+      stage.style.height = `${GRAPH.height}px`;
+      stage.style.transform = `scale(${STATE.zoom})`;
+
+      svg.setAttribute('viewBox', `0 0 ${GRAPH.width} ${GRAPH.height}`);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.innerHTML = `
+        <defs>
+          <marker id="arrow-head" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(71,85,105,0.72)"></path>
+          </marker>
+        </defs>
+        ${(GRAPH.edges || []).map(buildEdgeMarkup).join('')}
+      `;
+
+      const allNodes = [...DATA.nodes, ...DATA.conclusion_nodes];
+      nodeLayer.innerHTML = allNodes.map(buildNodeMarkup).join('');
+
+      nodeLayer.querySelectorAll('[data-node-id]').forEach((btn) => {
+        btn.addEventListener('click', () => focusNode(btn.dataset.nodeId, true));
+      });
+
+      svg.querySelectorAll('[data-edge-id]').forEach((edgeEl) => {
+        edgeEl.addEventListener('click', () => focusEdge(edgeEl.dataset.edgeId, true));
+      });
+
+      updateGraphInfo();
+      renderMiniMap();
+    }
+
+    function renderDetails() {
+      const title = document.getElementById('detail-title');
+      const subtitle = document.getElementById('detail-subtitle');
+      const body = document.getElementById('detail-body');
+      const group = STATE.kind === 'group' ? (GROUP_BY_ID[STATE.id] || GRAPH_VIEW.groupSummary) : null;
+      const node = STATE.kind === 'node' ? NODE_BY_ID[STATE.id] : null;
+      const edge = STATE.kind === 'edge' ? EDGE_BY_ID[STATE.id] : null;
+
+      if (group) {
+        title.textContent = `${group.title} · 分组聚焦`;
+        subtitle.textContent = `${group.range || '—'} | ${group.description || '—'}`;
+        body.innerHTML = renderGroupSummary(group);
+        body.querySelectorAll('[data-node-jump]').forEach((btn) => {
+          btn.addEventListener('click', () => focusNode(btn.dataset.nodeJump, true));
+        });
+        return;
+      }
+
+      if (node) {
+        title.textContent = `${node.id} · ${node.name}`;
+        subtitle.textContent = node.type === 'step'
+          ? `步骤文件：${node.step_file} | 分组：${node.group_title}`
+          : `结论节点 | 等级：${node.level || 'info'}`;
+
+        const issueCounts = node.issue_counts || { critical: 0, warning: 0, info: 0 };
+        const relatedIncoming = INCOMING[node.id] || [];
+        const relatedOutgoing = OUTGOING[node.id] || [];
+
+        let html = `
+          <div class="detail-card">
+            <h3>节点概览</h3>
+            <div class="kv">
+              <div class="item"><div class="key">类型</div><div>${escapeHtml(node.type || '—')}</div></div>
+              <div class="item"><div class="key">分组</div><div>${escapeHtml(node.group_title || '—')}</div></div>
+              <div class="item"><div class="key">问题</div><div><span class="badge ${severityClass(issueCounts)}">${escapeHtml(summaryText(issueCounts))}</span></div></div>
+            </div>
+          </div>
+        `;
+
+        if (node.type === 'step') {
+          html += `
+            <div class="detail-card">
+              <h3>步骤信息</h3>
+              <div class="kv">
+                <div class="item"><div class="key">文件</div><div>${escapeHtml(node.step_file)}</div></div>
+                <div class="item"><div class="key">说明</div><div>${escapeHtml(node.content || '—')}</div></div>
+              </div>
+            </div>
+          `;
+
+          html += `
+            <div class="detail-card">
+              <h3>Skills</h3>
+              <div class="block-list">
+                ${(node.skills || []).length ? node.skills.map((skill, index) => `
+                  <div class="block">
+                    <div><strong>${escapeHtml(skill.skill_id || `skill_${index + 1}`)}</strong></div>
+                    <div class="link-row" style="margin-top:6px">
+                      <span class="badge badge-muted">${Object.keys(skill.inputs || {}).length} inputs</span>
+                      ${skill.selector ? '<span class="badge badge-primary">selector</span>' : '<span class="badge badge-muted">no selector</span>'}
+                    </div>
+                    <div style="margin-top:8px">selector</div>
+                    <pre class="mono">${escapeHtml(JSON.stringify(skill.selector ?? null, null, 2))}</pre>
+                    <div style="margin-top:8px">inputs</div>
+                    <pre class="mono">${escapeHtml(JSON.stringify(skill.inputs || {}, null, 2))}</pre>
+                    <div style="margin-top:8px">schema</div>
+                    <pre class="mono">${escapeHtml(JSON.stringify(skill.extraction_schema || [], null, 2))}</pre>
+                  </div>
+                `).join('') : '<div class="empty">没有 skills。</div>'}
+              </div>
+            </div>
+          `;
+
+          html += `
+            <div class="detail-card">
+              <h3>跳转规则</h3>
+              <div class="block-list">
+                ${(node.transitions || []).length ? node.transitions.map((item) => `
+                  <div class="block">
+                    <div class="link-row">
+                      <span class="badge ${item.kind === 'default' ? 'badge-muted' : item.kind.startsWith('on_error') ? 'badge-warning' : 'badge-primary'}">${escapeHtml(item.kind)}</span>
+                      <span class="badge badge-muted">next: ${escapeHtml(item.next_node || '—')}</span>
+                    </div>
+                    <div style="margin-top:8px"><strong>${escapeHtml(item.description || '未命名规则')}</strong></div>
+                    <div style="margin-top:6px;color:var(--muted)">condition: ${escapeHtml(item.condition || '（空）')}</div>
+                  </div>
+                `).join('') : '<div class="empty">没有跳转规则。</div>'}
+              </div>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="detail-card">
+              <h3>结论信息</h3>
+              <div class="kv">
+                <div class="item"><div class="key">说明</div><div>${escapeHtml(node.content || '—')}</div></div>
+                <div class="item"><div class="key">修复</div><div>${escapeHtml(node.repair_action || '—')}</div></div>
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+          <div class="detail-card">
+            <h3>关联边</h3>
+            <div class="block-list">
+              <div class="block">
+                <div class="link-row">
+                  ${(relatedIncoming || []).length ? relatedIncoming.map((item) => `<button class="link-chip" data-edge-jump="${escapeHtml(item.id)}">${escapeHtml(item.source)} → ${escapeHtml(item.target)}</button>`).join('') : '<span class="badge badge-muted">无上游</span>'}
+                </div>
+              </div>
+              <div class="block">
+                <div class="link-row">
+                  ${(relatedOutgoing || []).length ? relatedOutgoing.map((item) => `<button class="link-chip" data-edge-jump="${escapeHtml(item.id)}">${escapeHtml(item.source)} → ${escapeHtml(item.target)}</button>`).join('') : '<span class="badge badge-muted">无下游</span>'}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        body.innerHTML = html;
+        body.querySelectorAll('[data-edge-jump]').forEach((btn) => {
+          btn.addEventListener('click', () => focusEdge(btn.dataset.edgeJump, true));
+        });
+        return;
+      }
+
+      if (edge) {
+        const source = NODE_BY_ID[edge.source];
+        const target = NODE_BY_ID[edge.target];
+        title.textContent = `${edge.source} → ${edge.target}`;
+        subtitle.textContent = `跳转类型：${edge.kind}`;
+
+        body.innerHTML = `
+          <div class="detail-card">
+            <h3>边信息</h3>
+            <div class="kv">
+              <div class="item"><div class="key">来源</div><div>${escapeHtml(edge.source)}</div></div>
+              <div class="item"><div class="key">目标</div><div>${escapeHtml(edge.target)}</div></div>
+              <div class="item"><div class="key">类型</div><div>${escapeHtml(edge.kind || '—')}</div></div>
+              <div class="item"><div class="key">说明</div><div>${escapeHtml(edge.description || '—')}</div></div>
+              <div class="item"><div class="key">条件</div><div>${escapeHtml(edge.condition || '（空）')}</div></div>
+            </div>
+          </div>
+          <div class="detail-card">
+            <h3>跳转文本</h3>
+            <div class="block-list">
+              ${(edge.display_lines || []).map((line) => `<div class="block">${escapeHtml(line)}</div>`).join('')}
+            </div>
+          </div>
+          <div class="detail-card">
+            <h3>关联节点</h3>
+            <div class="block-list">
+              <div class="block">
+                <div class="link-row">
+                  ${source ? `<button class="link-chip" data-node-jump="${escapeHtml(source.id)}">${escapeHtml(source.id)} · 源节点</button>` : '<span class="badge badge-muted">源节点缺失</span>'}
+                  ${target ? `<button class="link-chip" data-node-jump="${escapeHtml(target.id)}">${escapeHtml(target.id)} · 目标节点</button>` : '<span class="badge badge-muted">目标节点缺失</span>'}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        body.querySelectorAll('[data-node-jump]').forEach((btn) => {
+          btn.addEventListener('click', () => focusNode(btn.dataset.nodeJump, true));
+        });
+      }
+    }
+
+    function renderAll() {
+      renderTop();
+      renderStartList();
+      renderGroupList();
+      renderDetails();
+      computeGraphView();
+      fitGraph(true);
+      document.getElementById('search').addEventListener('input', (event) => {
+        STATE.query = event.target.value.trim();
+        computeGraphView();
+        renderStartList();
+        renderGroupList();
+        renderGraph();
+        renderDetails();
+      });
+      document.getElementById('search').addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        const query = event.currentTarget.value.trim().toLowerCase();
+        if (!query) return;
+        const matched = [...DATA.nodes, ...DATA.conclusion_nodes].find((node) => {
+          const fields = [node.id, node.name, node.content, node.step_file].join(' ').toLowerCase();
+          return fields.includes(query);
+        });
+        if (matched) {
+          event.preventDefault();
+          focusNode(matched.id, true);
+        }
+      });
+      document.querySelectorAll('[data-view]').forEach((btn) => {
+        btn.addEventListener('click', () => setViewMode(btn.dataset.view));
+      });
+      document.querySelector('[data-action="focus-current"]').addEventListener('click', () => {
+        if (STATE.kind === 'group') {
+          const group = GROUP_BY_ID[STATE.id];
+          const anchorId = group?.step_ids?.[0];
+          if (anchorId) {
+            focusNode(anchorId, true);
+            return;
+          }
+        }
+        if (STATE.kind === 'edge') {
+          const edge = EDGE_BY_ID[STATE.id];
+          if (edge) {
+            focusNode(edge.source, true);
+            return;
+          }
+        }
+        focusNode(STATE.id, true);
+      });
+      document.querySelectorAll('[data-zoom]').forEach((btn) => {
+        btn.addEventListener('click', () => handleZoom(btn.dataset.zoom));
+      });
+      window.addEventListener('resize', () => {
+        computeGraphView();
+        fitGraph(true);
+      });
+    }
+
+    function focusNode(nodeId, center = false) {
+      const node = NODE_BY_ID[nodeId];
+      if (!node) return;
+      STATE.kind = 'node';
+      STATE.id = nodeId;
+      STATE.viewMode = 'local';
+      computeGraphView();
+      renderStartList();
+      renderGroupList();
+      fitGraph(center);
+      renderDetails();
+      renderViewButtons();
+    }
+
+    function focusGroup(groupId, center = false) {
+      const group = GROUP_BY_ID[groupId];
+      if (!group) return;
+      STATE.kind = 'group';
+      STATE.id = groupId;
+      STATE.viewMode = 'local';
+      computeGraphView();
+      renderStartList();
+      renderGroupList();
+      fitGraph(center);
+      renderDetails();
+      renderViewButtons();
+    }
+
+    function focusEdge(edgeId, center = false) {
+      const edge = EDGE_BY_ID[edgeId];
+      if (!edge) return;
+      STATE.kind = 'edge';
+      STATE.id = edgeId;
+      STATE.viewMode = 'local';
+      computeGraphView();
+      renderStartList();
+      renderGroupList();
+      fitGraph(center);
+      renderDetails();
+      renderViewButtons();
+    }
+
+    function centerNode(node) {
+      const viewport = document.getElementById('graph-viewport');
+      const layout = node.graph_layout;
+      if (!viewport || !layout) return;
+      const left = layout.x * STATE.zoom + layout.width * STATE.zoom / 2 - viewport.clientWidth / 2;
+      const top = layout.y * STATE.zoom + layout.height * STATE.zoom / 2 - viewport.clientHeight / 2;
+      viewport.scrollLeft = Math.max(0, left);
+      viewport.scrollTop = Math.max(0, top);
+    }
+
+    function centerEdge(edge) {
+      const viewport = document.getElementById('graph-viewport');
+      if (!viewport || !edge.layout) return;
+      const left = edge.layout.label_x * STATE.zoom - viewport.clientWidth / 2;
+      const top = edge.layout.label_y * STATE.zoom - viewport.clientHeight / 2;
+      viewport.scrollLeft = Math.max(0, left);
+      viewport.scrollTop = Math.max(0, top);
+    }
+
+    function applyZoom(nextZoom, keepCenter = true) {
+      const viewport = document.getElementById('graph-viewport');
+      const oldZoom = STATE.zoom;
+      const centerX = viewport ? (viewport.scrollLeft + viewport.clientWidth / 2) / oldZoom : 0;
+      const centerY = viewport ? (viewport.scrollTop + viewport.clientHeight / 2) / oldZoom : 0;
+      STATE.zoom = clamp(nextZoom, 0.28, 1.6);
+      renderGraph();
+      if (keepCenter && viewport) {
+        viewport.scrollLeft = Math.max(0, centerX * STATE.zoom - viewport.clientWidth / 2);
+        viewport.scrollTop = Math.max(0, centerY * STATE.zoom - viewport.clientHeight / 2);
+      }
+      renderMiniMap();
+      updateGraphInfo();
+    }
+
+    function fitGraph(keepCenter = true) {
+      const viewport = document.getElementById('graph-viewport');
+      if (!viewport) return;
+      const bounds = STATE.viewMode === 'full'
+        ? (GRAPH_VIEW.bounds || { x: 0, y: 0, width: GRAPH.width, height: GRAPH.height })
+        : (GRAPH_VIEW.focusBounds || GRAPH_VIEW.bounds || { x: 0, y: 0, width: GRAPH.width, height: GRAPH.height });
+      const widthFit = (viewport.clientWidth - 24) / Math.max(bounds.width, 1);
+      const heightFit = (viewport.clientHeight - 24) / Math.max(bounds.height, 1);
+      const minZoom = STATE.viewMode === 'full' ? 0.28 : 0.62;
+      const fit = clamp(Math.min(widthFit, heightFit), minZoom, 1.6);
+      STATE.zoom = fit;
+      renderGraph();
+      if (keepCenter) {
+        const anchorNode = GRAPH_VIEW.anchorId && NODE_BY_ID[GRAPH_VIEW.anchorId] ? NODE_BY_ID[GRAPH_VIEW.anchorId] : null;
+        const anchorLayout = anchorNode && anchorNode.graph_layout ? anchorNode.graph_layout : null;
+        const centerX = anchorLayout ? anchorLayout.x + anchorLayout.width / 2 : bounds.x + bounds.width / 2;
+        const centerY = anchorLayout ? anchorLayout.y + anchorLayout.height / 2 : bounds.y + bounds.height / 2;
+        viewport.scrollLeft = Math.max(0, centerX * STATE.zoom - viewport.clientWidth / 2);
+        viewport.scrollTop = Math.max(0, centerY * STATE.zoom - viewport.clientHeight / 2);
+      }
+      renderMiniMap();
+      updateGraphInfo();
+    }
+
+    function handleZoom(action) {
+      if (action === 'in') {
+        applyZoom(STATE.zoom + 0.12, true);
+      } else if (action === 'out') {
+        applyZoom(STATE.zoom - 0.12, true);
+      } else if (action === 'reset') {
+        applyZoom(1, true);
+      } else if (action === 'fit') {
+        fitGraph(true);
+      }
+    }
+
+    function setViewMode(mode) {
+      STATE.viewMode = mode;
+      computeGraphView();
+      fitGraph(true);
+      renderViewButtons();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
