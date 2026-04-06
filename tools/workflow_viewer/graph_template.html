@@ -469,6 +469,7 @@
     .badge.primary { background: var(--primary-soft); color: var(--primary); border-color: rgba(37, 99, 235, 0.18); }
     .badge.success { background: var(--success-soft); color: var(--success); border-color: rgba(15, 118, 110, 0.18); }
     .badge.warning { background: var(--warning-soft); color: var(--warning); border-color: rgba(217, 119, 6, 0.18); }
+    .badge.info { background: var(--primary-soft); color: var(--primary); border-color: rgba(37, 99, 235, 0.18); }
     .badge.critical { background: var(--critical-soft); color: var(--critical); border-color: rgba(220, 38, 38, 0.18); }
 
     .graph-edge {
@@ -943,7 +944,6 @@
 
     function routeTone(routeType) {
       if (routeType === 'default') return 'neutral';
-      if (routeType === 'on_error') return 'warning';
       return 'primary';
     }
 
@@ -966,7 +966,7 @@
           ${items.map((item) => `
             <div class="list-item">
               <div class="badge-row" style="margin-bottom:6px;">
-                <span class="badge ${item.severity === 'critical' ? 'critical' : item.severity === 'warning' ? 'warning' : 'primary'}">${escapeHtml(item.severity === 'critical' ? '严重' : item.severity === 'warning' ? '警告' : '提示')}</span>
+                <span class="badge ${item.severity === 'critical' ? 'critical' : item.severity === 'warning' ? 'warning' : 'info'}">${escapeHtml(item.severity === 'critical' ? '严重' : item.severity === 'warning' ? '警告' : '提示')}</span>
                 ${item.category ? `<span class="badge neutral">${escapeHtml(item.category)}</span>` : ''}
                 ${item.line ? `<span class="badge neutral">line ${escapeHtml(item.line)}</span>` : ''}
               </div>
@@ -1148,6 +1148,25 @@
       setTransform(x, y, scale);
     }
 
+    function focusToNode(node, bounds, { minScale = 0.82, maxScale = 1.18, pad = 92 } = {}) {
+      if (!node || !node.graph_layout) return;
+      const layout = node.graph_layout;
+      const viewportW = graphViewport.clientWidth || 1;
+      const viewportH = graphViewport.clientHeight || 1;
+      const focusX = layout.center_x ?? (layout.x + layout.width / 2);
+      const focusY = layout.center_y ?? (layout.y + layout.height / 2);
+      const safeScale = Math.max(
+        minScale,
+        Math.min(maxScale, Math.min(
+          (viewportW - pad * 2) / Math.max((bounds?.x2 ?? layout.x + layout.width) - (bounds?.x1 ?? layout.x), 1),
+          (viewportH - pad * 2) / Math.max((bounds?.y2 ?? layout.y + layout.height) - (bounds?.y1 ?? layout.y), 1)
+        ))
+      );
+      const x = viewportW / 2 - focusX * safeScale;
+      const y = viewportH / 2 - focusY * safeScale;
+      setTransform(x, y, safeScale);
+    }
+
     function focusSelection(type, id, { keepMode = true } = {}) {
       if (!id) {
         showOverview();
@@ -1159,13 +1178,33 @@
       state.lastId = id;
       if (keepMode) state.mode = 'focus';
       const bounds = boundsForSelection(type, id) || graphBounds();
-      const center = type === 'edge' && edgeMap.get(id)
-        ? {
-            x: ((nodeMap.get(edgeMap.get(id).source)?.graph_layout?.center_x ?? 0) + (nodeMap.get(edgeMap.get(id).target)?.graph_layout?.center_x ?? 0)) / 2,
-            y: ((nodeMap.get(edgeMap.get(id).source)?.graph_layout?.center_y ?? 0) + (nodeMap.get(edgeMap.get(id).target)?.graph_layout?.center_y ?? 0)) / 2,
-          }
-        : null;
-      fitToBounds(bounds, { minScale: 0.82, maxScale: 1.18, pad: 92, center });
+      if (type === 'node') {
+        focusToNode(nodeMap.get(id), bounds, { minScale: 0.82, maxScale: 1.18, pad: 92 });
+      } else if (type === 'edge') {
+        const edge = edgeMap.get(id);
+        const source = edge ? nodeMap.get(edge.source) : null;
+        const target = edge ? nodeMap.get(edge.target) : null;
+        const center = source && target ? {
+          x: (source.graph_layout.center_x + target.graph_layout.center_x) / 2,
+          y: (source.graph_layout.center_y + target.graph_layout.center_y) / 2,
+        } : null;
+        fitToBounds(bounds, { minScale: 0.82, maxScale: 1.18, pad: 92, center });
+      } else {
+        fitToBounds(bounds, { minScale: 0.82, maxScale: 1.18, pad: 92 });
+      }
+      render();
+    }
+
+    function focusNodeById(nodeId, { keepMode = true } = {}) {
+      const node = nodeMap.get(nodeId);
+      if (!node) return;
+      state.selectedType = 'node';
+      state.selectedId = nodeId;
+      state.lastType = 'node';
+      state.lastId = nodeId;
+      if (keepMode) state.mode = 'focus';
+      const bounds = boundsForSelection('node', nodeId) || graphBounds();
+      focusToNode(node, bounds, { minScale: 0.82, maxScale: 1.18, pad: 92 });
       render();
     }
 
@@ -1403,7 +1442,7 @@
           <div class="card">
             <h3 class="detail-section-title">跳转语义</h3>
             <div class="badge-row">
-              <span class="badge ${edge.route_type === 'on_error' ? 'warning' : 'primary'}">${escapeHtml(routeLabel(edge.route_type))}</span>
+              <span class="badge ${routeBadgeTone(edge.route_type)}">${escapeHtml(routeLabel(edge.route_type))}</span>
               <span class="badge neutral">来源: ${escapeHtml(edge.source)}</span>
               <span class="badge neutral">目标: ${escapeHtml(edge.target || '未解析')}</span>
             </div>
@@ -1583,14 +1622,7 @@
 
     function selectNode(nodeId) {
       if (!nodeMap.has(nodeId)) return;
-      state.selectedType = 'node';
-      state.selectedId = nodeId;
-      state.lastType = 'node';
-      state.lastId = nodeId;
-      state.mode = 'focus';
-      const bounds = boundsForSelection('node', nodeId) || graphBounds();
-      fitToBounds(bounds, { minScale: 0.82, maxScale: 1.18, pad: 92 });
-      render();
+      focusNodeById(nodeId);
     }
 
     function selectEdge(edgeId) {
@@ -1615,6 +1647,10 @@
     function resetFocus() {
       const targetType = state.lastType || 'node';
       const targetId = state.lastId || data.meta.default_node_id || data.nodes[0]?.id || '';
+      if (targetType === 'node' && targetId) {
+        focusNodeById(targetId);
+        return;
+      }
       focusSelection(targetType, targetId);
     }
 
