@@ -62,7 +62,7 @@ file | issue | severity | recommendation
 示例：
 
 ```text
-step_20_check_cpu_defend_blacklist.yaml | next_node 使用 __NEED_FILL__ | high | 替换为合法的 step 或 conclusion
+step_20_check_cpu_defend_blacklist.yaml | next_node 使用 __NEED_FILL__ | critical | 替换为合法的 step 或 conclusion
 ```
 
 ## 当前已知问题
