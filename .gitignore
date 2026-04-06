@@ -2,3 +2,5 @@
 .helloagents/
 helloagents_backup_*/
 __pycache__/
+reports/workflow_viewer/ping_unreachable/[0-9]*/
+reports/workflow_viewer/ping_unreachable/manual_check/
