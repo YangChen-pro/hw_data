@@ -934,16 +934,6 @@
     }
 
     function statusMeta(node) {
-      if (node.kind === 'conclusion') {
-        const level = node.level || 'info';
-        if (level === 'error') {
-          return { key: 'critical', label: '结论级别: 错误', tone: 'critical' };
-        }
-        if (level === 'warning') {
-          return { key: 'warning', label: '结论级别: 警告', tone: 'warning' };
-        }
-        return { key: 'info', label: '结论级别: 信息', tone: 'info' };
-      }
       const counts = node.issue_counts || {};
       if ((counts.critical || 0) > 0) return { key: 'critical', label: `严重 ${counts.critical}`, tone: 'critical' };
       if ((counts.warning || 0) > 0) return { key: 'warning', label: `警告 ${counts.warning}`, tone: 'warning' };
@@ -965,6 +955,28 @@
 
     function routeTarget(item) {
       return item?.target || item?.next_node || '';
+    }
+
+    function renderIssueItems(items) {
+      if (!items || !items.length) {
+        return '<div class="empty">当前节点没有可展示的独立问题。</div>';
+      }
+      return `
+        <div class="list">
+          ${items.map((item) => `
+            <div class="list-item">
+              <div class="badge-row" style="margin-bottom:6px;">
+                <span class="badge ${item.severity === 'critical' ? 'critical' : item.severity === 'warning' ? 'warning' : 'primary'}">${escapeHtml(item.severity === 'critical' ? '严重' : item.severity === 'warning' ? '警告' : '提示')}</span>
+                ${item.category ? `<span class="badge neutral">${escapeHtml(item.category)}</span>` : ''}
+                ${item.line ? `<span class="badge neutral">line ${escapeHtml(item.line)}</span>` : ''}
+              </div>
+              <strong>${escapeHtml(item.message || '问题')}</strong>
+              ${item.path ? `<div class="note" style="margin:6px 0 0;">${escapeHtml(item.path)}</div>` : ''}
+              ${item.recommendation ? `<div class="note" style="margin:6px 0 0;">${escapeHtml(item.recommendation)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `;
     }
 
     function routeBadgeTone(routeType) {
@@ -1311,6 +1323,14 @@
               <p class="status-note">这部分只描述节点健康情况，与流程跳转规则分开看。</p>
             </div>
           </div>
+
+          ${node.issue_items && node.issue_items.length ? `
+            <div class="card">
+              <h3 class="detail-section-title">问题详情</h3>
+              <p class="detail-section-note">这里只列出 report.md 中标出的严重 / 警告 / 提示问题。</p>
+              ${renderIssueItems(node.issue_items)}
+            </div>
+          ` : ''}
 
           <div class="card">
             <h3>基本信息</h3>

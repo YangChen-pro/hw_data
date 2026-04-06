@@ -74,6 +74,12 @@ reports/workflow_viewer/ping_unreachable/<时间戳>/index.html
 node tools/workflow_viewer/route_target_compat.test.mjs
 ```
 
+如果你需要验证“报告总数 / 问题明细兼容性”，可以直接运行：
+
+```bash
+conda run -n claw python -X utf8 tools/workflow_viewer/issue_summary_compat.test.py
+```
+
 ## 报告怎么看
 
 先看 `report.md`，通常按这个顺序读：

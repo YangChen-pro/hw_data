@@ -98,19 +98,41 @@ def _load_latest_issue_report(report_root: Path) -> dict[str, Any] | None:
         return None
 
 
-def _build_issue_summary(issue_report: dict[str, Any] | None) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
+def _build_issue_summary(issue_report: dict[str, Any] | None) -> tuple[dict[str, dict[str, int]], dict[str, int], dict[str, list[dict[str, Any]]], int]:
     by_node: dict[str, dict[str, int]] = defaultdict(lambda: {"critical": 0, "warning": 0, "info": 0})
+    items_by_node: dict[str, list[dict[str, Any]]] = defaultdict(list)
     global_counts = {"critical": 0, "warning": 0, "info": 0}
     if not issue_report:
-        return {}, global_counts
+        return {}, global_counts, {}, 0
+    if "critical_count" in issue_report or "warning_count" in issue_report or "info_count" in issue_report:
+        global_counts = {
+            "critical": int(issue_report.get("critical_count", 0) or 0),
+            "warning": int(issue_report.get("warning_count", 0) or 0),
+            "info": int(issue_report.get("info_count", 0) or 0),
+        }
     for item in issue_report.get("issues", []):
         severity = item.get("severity", "warning")
         step_id = item.get("step_id") or "workflow"
         if step_id == "workflow":
-            global_counts[severity] = global_counts.get(severity, 0) + 1
+            if "critical_count" not in issue_report and "warning_count" not in issue_report and "info_count" not in issue_report:
+                global_counts[severity] = global_counts.get(severity, 0) + 1
             continue
+        item_record = {
+            "severity": severity,
+            "category": item.get("category", ""),
+            "path": item.get("path", ""),
+            "message": item.get("message", ""),
+            "recommendation": item.get("recommendation", ""),
+            "line": item.get("line"),
+            "file": item.get("file", ""),
+            "step_id": step_id,
+        }
         by_node[step_id][severity] = by_node[step_id].get(severity, 0) + 1
-    return dict(by_node), global_counts
+        items_by_node[step_id].append(item_record)
+    total = int(issue_report.get("issue_count", 0) or 0)
+    if total <= 0:
+        total = sum(global_counts.values()) + sum(sum(counts.values()) for counts in by_node.values())
+    return dict(by_node), global_counts, dict(items_by_node), total
 
 
 def _summarize_transitions(transitions: dict[str, Any]) -> list[dict[str, Any]]:
@@ -488,7 +510,7 @@ def build_viewer_data(
     else:
         issue_report = _load_latest_issue_report(report_root) if report_root else None
 
-    issues_by_node, global_issue_counts = _build_issue_summary(issue_report)
+    issues_by_node, global_issue_counts, issue_items_by_node, issue_total = _build_issue_summary(issue_report)
     repo_root = workflow_path.parents[2]
 
     nodes: list[dict[str, Any]] = []
@@ -516,6 +538,7 @@ def build_viewer_data(
             "skills": doc.get("skills") or [],
             "transitions": _summarize_transitions(doc.get("transitions") or {}),
             "issue_counts": issues_by_node.get(step_id, {"critical": 0, "warning": 0, "info": 0}),
+            "issue_items": issue_items_by_node.get(step_id, []),
         }
         node["issue_total"] = sum(int(v or 0) for v in node["issue_counts"].values())
         if node["issue_counts"].get("critical", 0):
@@ -578,6 +601,7 @@ def build_viewer_data(
             "level": doc.get("level", "info"),
             "repair_action": doc.get("repair_action", ""),
             "issue_counts": issues_by_node.get(conclusion_id, {"critical": 0, "warning": 0, "info": 0}),
+            "issue_items": issue_items_by_node.get(conclusion_id, []),
         }
         node["issue_total"] = sum(int(v or 0) for v in node["issue_counts"].values())
         if node["issue_counts"].get("critical", 0):
@@ -657,7 +681,7 @@ def build_viewer_data(
         "issue_summary": {
             "by_node": issues_by_node,
             "global": global_issue_counts,
-            "total": sum(global_issue_counts.values()) + sum(sum(v.values()) for v in issues_by_node.values()),
+            "total": issue_total,
         },
         "step_node_map": step_node_map,
     }
