@@ -17,8 +17,29 @@ from .models import (
     read_text,
     LEGACY_STATE_REF_RE,
     Issue,
+    YamlLoadError,
 )
 from .validators import find_line, validate_target
+
+
+def _mapping_issue(
+    *,
+    file_name: str,
+    step_id: str,
+    path: str,
+    field_name: str,
+    value: Any,
+    recommendation: str,
+) -> Issue:
+    return Issue(
+        file=file_name,
+        step_id=step_id,
+        severity="critical",
+        category="workflow",
+        path=path,
+        message=f"{field_name} 必须是字典，当前为 {type(value).__name__}",
+        recommendation=recommendation,
+    )
 
 
 def evaluate_step(
@@ -31,6 +52,19 @@ def evaluate_step(
 ) -> list[Issue]:
     issues: list[Issue] = []
     declared_fields: set[str] = set()
+
+    if not isinstance(doc, dict):
+        issues.append(
+            _mapping_issue(
+                file_name=file_name,
+                step_id=step_id,
+                path="$",
+                field_name="step 顶层结构",
+                value=doc,
+                recommendation="修正为包含 step_id / name / transitions 等键的字典结构",
+            )
+        )
+        return issues
 
     for skill_index, skill in enumerate(normalize_list(doc.get("skills"))):
         if not isinstance(skill, dict):
@@ -121,8 +155,42 @@ def evaluate_step(
                 )
             )
 
-    transitions = doc.get("transitions") or {}
-    rules = normalize_list(transitions.get("rules"))
+    transitions_raw = doc.get("transitions")
+    if transitions_raw is None:
+        transitions: dict[str, Any] = {}
+    elif isinstance(transitions_raw, dict):
+        transitions = transitions_raw
+    else:
+        issues.append(
+            _mapping_issue(
+                file_name=file_name,
+                step_id=step_id,
+                path="transitions",
+                field_name="transitions",
+                value=transitions_raw,
+                recommendation="修正为包含 rules / on_error / default 的字典结构",
+            )
+        )
+        transitions = {}
+
+    rules_raw = transitions.get("rules")
+    if rules_raw is None:
+        rules: list[Any] = []
+    elif isinstance(rules_raw, list):
+        rules = rules_raw
+    else:
+        issues.append(
+            Issue(
+                file=file_name,
+                step_id=step_id,
+                severity="critical",
+                category="transitions",
+                path="transitions.rules",
+                message=f"transitions.rules 不是列表，当前为 {type(rules_raw).__name__}",
+                recommendation="改为 rule 字典组成的列表结构",
+            )
+        )
+        rules = normalize_list(rules_raw)
     for rule_index, rule in enumerate(rules):
         if not isinstance(rule, dict):
             issues.append(
@@ -228,19 +296,34 @@ def evaluate_step(
         for issue in next_issues:
             issues.append(replace(issue, line=line) if line is not None else issue)
 
-    on_error = transitions.get("on_error") or {}
-    if isinstance(on_error, dict):
-        for key, target in on_error.items():
-            issues.extend(
-                validate_target(
-                    target=target,
-                    workflow_step_ids=workflow_step_ids,
-                    conclusion_ids=conclusion_ids,
-                    file_name=file_name,
-                    step_id=step_id,
-                    path=f"transitions.on_error.{key}",
-                )
+    on_error_raw = transitions.get("on_error")
+    if on_error_raw is None:
+        on_error: dict[str, Any] = {}
+    elif isinstance(on_error_raw, dict):
+        on_error = on_error_raw
+    else:
+        issues.append(
+            _mapping_issue(
+                file_name=file_name,
+                step_id=step_id,
+                path="transitions.on_error",
+                field_name="transitions.on_error",
+                value=on_error_raw,
+                recommendation="改为 key -> next_node 的字典映射",
             )
+        )
+        on_error = {}
+    for key, target in on_error.items():
+        issues.extend(
+            validate_target(
+                target=target,
+                workflow_step_ids=workflow_step_ids,
+                conclusion_ids=conclusion_ids,
+                file_name=file_name,
+                step_id=step_id,
+                path=f"transitions.on_error.{key}",
+            )
+        )
 
     issues.extend(
         validate_target(
@@ -256,24 +339,124 @@ def evaluate_step(
 
 
 def evaluate_workflow(workflow_path: Path, steps_dir: Path) -> tuple[list[Issue], dict[str, Any]]:
-    workflow = load_yaml(workflow_path)
-    conclusions = workflow.get("conclusions") or {}
-    conclusion_ids = set(conclusions.keys())
-    workflow_step_ids = set(normalize_list(workflow.get("steps")))
-    start_nodes = normalize_list(workflow.get("start_node"))
-
     issues: list[Issue] = []
     stats: dict[str, Any] = {
         "workflow_path": str(workflow_path),
         "steps_dir": str(steps_dir),
-        "workflow_step_count": len(workflow_step_ids),
+        "workflow_step_count": 0,
         "step_file_count": 0,
-        "start_node_count": len(start_nodes),
+        "start_node_count": 0,
         "blank_selector_count": 0,
         "blank_selector_examples": [],
         "files_with_issues": defaultdict(int),
         "issue_counter": Counter(),
     }
+
+    try:
+        workflow_raw = load_yaml(workflow_path)
+    except YamlLoadError as error:
+        issues.append(
+            Issue(
+                file=workflow_path.name,
+                step_id="workflow",
+                severity="critical",
+                category="workflow",
+                path="$",
+                message=f"workflow.yaml YAML 解析失败: {error.detail}",
+                recommendation="修复 YAML 语法错误后重新运行评估器",
+                line=error.line,
+            )
+        )
+        stats["files_with_issues"][workflow_path.name] = 1
+        stats["issue_counter"]["critical"] = 1
+        stats["issue_counter"]["workflow"] = 1
+        stats["files_with_issues"] = dict(stats["files_with_issues"])
+        stats["issue_counter"] = dict(stats["issue_counter"])
+        return issues, stats
+
+    if workflow_raw is None:
+        issues.append(
+            Issue(
+                file=workflow_path.name,
+                step_id="workflow",
+                severity="critical",
+                category="workflow",
+                path="$",
+                message="workflow.yaml 为空",
+                recommendation="补充顶层字典结构，至少包含 steps 和 conclusions",
+            )
+        )
+        workflow: dict[str, Any] = {}
+    elif not isinstance(workflow_raw, dict):
+        issues.append(
+            _mapping_issue(
+                file_name=workflow_path.name,
+                step_id="workflow",
+                path="$",
+                field_name="workflow 顶层结构",
+                value=workflow_raw,
+                recommendation="改为包含 workflow_id / steps / conclusions 的字典结构",
+            )
+        )
+        workflow = {}
+    else:
+        workflow = workflow_raw
+
+    conclusions_raw = workflow.get("conclusions")
+    if conclusions_raw is None:
+        conclusions: dict[str, Any] = {}
+    elif isinstance(conclusions_raw, dict):
+        conclusions = conclusions_raw
+    else:
+        issues.append(
+            _mapping_issue(
+                file_name=workflow_path.name,
+                step_id="workflow",
+                path="conclusions",
+                field_name="conclusions",
+                value=conclusions_raw,
+                recommendation="改为 conclusion_id -> conclusion 配置的字典结构",
+            )
+        )
+        conclusions = {}
+    conclusion_ids = set(conclusions.keys())
+
+    workflow_steps = normalize_list(workflow.get("steps"))
+    workflow_step_ids: set[str] = set()
+    workflow_step_counter: Counter[str] = Counter()
+    for index, step_value in enumerate(workflow_steps):
+        if not isinstance(step_value, str) or not step_value.strip():
+            issues.append(
+                Issue(
+                    file=workflow_path.name,
+                    step_id="workflow",
+                    severity="critical",
+                    category="workflow",
+                    path=f"steps[{index}]",
+                    message=f"workflow.steps[{index}] 不是有效的 step_id，当前为 {type(step_value).__name__}",
+                    recommendation="改为非空字符串类型的 step_id",
+                )
+            )
+            continue
+        step_id = step_value.strip()
+        workflow_step_counter[step_id] += 1
+        workflow_step_ids.add(step_id)
+    for step_id, count in sorted(workflow_step_counter.items()):
+        if count > 1:
+            issues.append(
+                Issue(
+                    file=workflow_path.name,
+                    step_id="workflow",
+                    severity="critical",
+                    category="workflow",
+                    path="steps",
+                    message=f"workflow.steps 中重复声明了 step: {step_id}（{count} 次）",
+                    recommendation="移除重复 step_id，保证每个 step 只声明一次",
+                )
+            )
+
+    start_nodes = normalize_list(workflow.get("start_node"))
+    stats["workflow_step_count"] = len(workflow_step_ids)
 
     for node in start_nodes:
         if node not in workflow_step_ids:
@@ -296,8 +479,60 @@ def evaluate_workflow(workflow_path: Path, steps_dir: Path) -> tuple[list[Issue]
 
     for step_path in actual_step_files:
         raw_text = read_text(step_path)
-        doc = load_yaml(step_path)
-        step_id = str(doc.get("step_id") or step_path.stem)
+        try:
+            doc_raw = load_yaml(step_path)
+        except YamlLoadError as error:
+            issues.append(
+                Issue(
+                    file=step_path.name,
+                    step_id=step_path.stem,
+                    severity="critical",
+                    category="workflow",
+                    path="$",
+                    message=f"step YAML 解析失败: {error.detail}",
+                    recommendation="修复该 step 文件的 YAML 语法错误",
+                    line=error.line,
+                )
+            )
+            if step_path.stem in workflow_step_ids:
+                actual_step_ids.add(step_path.stem)
+            continue
+
+        if doc_raw is None:
+            issues.append(
+                Issue(
+                    file=step_path.name,
+                    step_id=step_path.stem,
+                    severity="critical",
+                    category="workflow",
+                    path="$",
+                    message="step 文件为空",
+                    recommendation="补充 step 顶层字典结构",
+                )
+            )
+            if step_path.stem in workflow_step_ids:
+                actual_step_ids.add(step_path.stem)
+            continue
+        if not isinstance(doc_raw, dict):
+            issues.append(
+                _mapping_issue(
+                    file_name=step_path.name,
+                    step_id=step_path.stem,
+                    path="$",
+                    field_name="step 顶层结构",
+                    value=doc_raw,
+                    recommendation="修正为包含 step_id / name / transitions 等键的字典结构",
+                )
+            )
+            if step_path.stem in workflow_step_ids:
+                actual_step_ids.add(step_path.stem)
+            continue
+
+        doc = doc_raw
+        step_id_value = doc.get("step_id")
+        step_id = step_path.stem
+        if isinstance(step_id_value, str) and step_id_value.strip():
+            step_id = step_id_value.strip()
         if step_id in docs_by_step_id:
             issues.append(
                 Issue(

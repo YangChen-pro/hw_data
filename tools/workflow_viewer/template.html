@@ -797,7 +797,7 @@
       if (!query) return true;
       const haystack = [
         node.id,
-        node.name,
+        node.title,
         node.content,
         (node.skills || []).map((skill) => skill.skill_id || '').join(' '),
         (node.transitions || []).map((item) => `${item.description || ''} ${item.condition || ''} ${item.next_node || ''}`).join(' '),
@@ -833,12 +833,12 @@
                   <button class="node-card ${node.id === STATE.activeNodeId ? 'active' : ''}" data-node-id="${escapeHtml(node.id)}" data-group-id="${escapeHtml(group.id)}">
                     <div class="meta">
                       <span>${escapeHtml(node.id)}</span>
-                      <span class="badge ${badgeClassFromSeverity(node)}">${escapeHtml(node.summary_badge)}</span>
+                      <span class="badge ${badgeClassFromSeverity(node)}">${escapeHtml(formatIssueSummary(node))}</span>
                     </div>
-                    <p class="name">${escapeHtml(node.name)}</p>
+                    <p class="name">${escapeHtml(node.title)}</p>
                     <div class="content">${escapeHtml(node.content)}</div>
                     <div class="footer">
-                      <span class="badge badge-muted">${escapeHtml(node.type_label || node.type)}</span>
+                      <span class="badge badge-muted">${escapeHtml(node.type_label || node.kind)}</span>
                       <span class="badge badge-primary">${escapeHtml(node.group_title)}</span>
                     </div>
                   </button>
@@ -868,9 +868,10 @@
         return '<div class="empty">没有可展示的转移规则。</div>';
       }
       return node.transitions.map((item) => {
-        const kindBadge = item.kind === 'default'
+        const routeType = item.route_type || 'rule';
+        const kindBadge = routeType === 'default'
           ? '<span class="badge badge-muted">default</span>'
-          : item.kind.startsWith('error')
+          : routeType === 'on_error'
             ? '<span class="badge badge-warning">on_error</span>'
             : '<span class="badge badge-primary">rule</span>';
         return `
@@ -894,10 +895,10 @@
             <span>${escapeHtml(node.id)}</span>
             <span class="badge ${node.level === 'error' ? 'badge-critical' : node.level === 'warning' ? 'badge-warning' : 'badge-accent'}">${escapeHtml(node.level)}</span>
           </div>
-          <p class="name">${escapeHtml(node.name)}</p>
+          <p class="name">${escapeHtml(node.title)}</p>
           <div class="content">${escapeHtml(node.content)}</div>
           <div class="footer">
-            <span class="badge badge-muted">${escapeHtml(node.summary_badge)}</span>
+            <span class="badge badge-muted">${escapeHtml(formatIssueSummary(node))}</span>
           </div>
         </button>
       `).join('');
@@ -940,9 +941,9 @@
     function renderDetails(node) {
       const incoming = incomingMap[node.id] || [];
       const outgoing = outgoingMap[node.id] || [];
-      document.getElementById('detail-title').textContent = `${node.id} · ${node.name}`;
-      document.getElementById('detail-subtitle').textContent = node.type === 'step'
-        ? `分组：${node.group_title} | 文件：${node.step_file}`
+      document.getElementById('detail-title').textContent = `${node.id} · ${node.title}`;
+      document.getElementById('detail-subtitle').textContent = node.kind === 'step'
+        ? `分组：${node.group_title} | 文件：${node.file_path}`
         : `结论节点 | 等级：${node.level}`;
 
       const issueCounts = node.issue_counts || { critical: 0, warning: 0, info: 0 };
@@ -950,26 +951,26 @@
         issueCounts.critical ? `<span class="badge badge-critical">严重 ${issueCounts.critical}</span>` : '',
         issueCounts.warning ? `<span class="badge badge-warning">警告 ${issueCounts.warning}</span>` : '',
         issueCounts.info ? `<span class="badge badge-accent">提示 ${issueCounts.info}</span>` : '',
-        `<span class="badge badge-muted">${escapeHtml(node.summary_badge)}</span>`,
+        `<span class="badge badge-muted">${escapeHtml(formatIssueSummary(node))}</span>`,
       ].filter(Boolean).join('');
 
       let html = `
         <div class="detail-block">
           <h3>节点概览</h3>
           <div class="kv">
-            <div class="item"><div class="key">类型</div><div>${escapeHtml(node.type || '—')}</div></div>
+            <div class="item"><div class="key">类型</div><div>${escapeHtml(node.kind || '—')}</div></div>
             <div class="item"><div class="key">分组</div><div>${escapeHtml(node.group_title || node.level || '—')}</div></div>
             <div class="item"><div class="key">问题</div><div>${issueBadges}</div></div>
           </div>
         </div>
       `;
 
-      if (node.type === 'step') {
+      if (node.kind === 'step') {
         html += `
           <div class="detail-block">
             <h3>步骤信息</h3>
             <div class="kv">
-              <div class="item"><div class="key">文件</div><div>${escapeHtml(node.step_file)}</div></div>
+              <div class="item"><div class="key">文件</div><div>${escapeHtml(node.file_path)}</div></div>
               <div class="item"><div class="key">说明</div><div>${escapeHtml(node.content || '—')}</div></div>
             </div>
           </div>
@@ -1020,8 +1021,8 @@
         <div class="detail-block">
           <h3>关联节点</h3>
           <div class="kv">
-            <div class="item"><div class="key">上游</div><div>${incoming.length ? incoming.map((edge) => `<span class="badge badge-muted">${escapeHtml(edge.source)} → ${escapeHtml(edge.kind)}</span>`).join(' ') : '—'}</div></div>
-            <div class="item"><div class="key">下游</div><div>${outgoing.length ? outgoing.map((edge) => `<span class="badge badge-muted">${escapeHtml(edge.kind)} → ${escapeHtml(edge.target || '—')}</span>`).join(' ') : '—'}</div></div>
+            <div class="item"><div class="key">上游</div><div>${incoming.length ? incoming.map((edge) => `<span class="badge badge-muted">${escapeHtml(edge.source)} → ${escapeHtml(edge.route_type || 'rule')}</span>`).join(' ') : '—'}</div></div>
+            <div class="item"><div class="key">下游</div><div>${outgoing.length ? outgoing.map((edge) => `<span class="badge badge-muted">${escapeHtml(edge.route_type || 'rule')} → ${escapeHtml(edge.target || '—')}</span>`).join(' ') : '—'}</div></div>
           </div>
         </div>
       `;

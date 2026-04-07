@@ -16,7 +16,28 @@ def to_repo_relative(path: Path) -> str:
     try:
         return str(resolved.relative_to(repo_root))
     except ValueError:
-        return str(path)
+        return str(resolved)
+
+
+def resolve_input_path(repo_root: Path, raw_path: str) -> Path:
+    path = Path(raw_path)
+    return path.resolve() if path.is_absolute() else (repo_root / path).resolve()
+
+
+def workflow_namespace(workflow_path: Path, repo_root: Path) -> str:
+    resolved = workflow_path.resolve()
+    try:
+        relative = resolved.relative_to(repo_root)
+    except ValueError:
+        if resolved.stem == "workflow" and resolved.parent.name:
+            return resolved.parent.name
+        return resolved.stem
+    parts = relative.parts
+    if len(parts) >= 2 and parts[0] == "workflows":
+        return parts[1]
+    if relative.stem == "workflow" and len(parts) >= 2:
+        return parts[-2]
+    return relative.stem
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -38,16 +59,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    workflow_path = Path(args.workflow).resolve()
-    steps_dir = Path(args.steps_dir).resolve()
-    workflow_display_path = to_repo_relative(Path(args.workflow))
-    steps_display_path = to_repo_relative(Path(args.steps_dir))
+    repo_root = Path(__file__).resolve().parents[2]
+    workflow_path = resolve_input_path(repo_root, args.workflow)
+    steps_dir = resolve_input_path(repo_root, args.steps_dir)
+    workflow_display_path = to_repo_relative(workflow_path)
+    steps_display_path = to_repo_relative(steps_dir)
     if args.output_dir:
         output_dir = Path(args.output_dir).resolve()
     else:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = Path("reports/yaml_evaluation/ping_unreachable") / timestamp
-        output_dir = output_dir.resolve()
+        output_dir = repo_root / "reports" / "yaml_evaluation" / workflow_namespace(workflow_path, repo_root) / timestamp
 
     issues, stats = evaluate_workflow(workflow_path, steps_dir)
     report = build_report_payload(workflow_display_path, steps_display_path, issues, stats)

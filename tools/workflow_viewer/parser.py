@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -35,12 +36,65 @@ GROUP_RULES = [
 ]
 
 
+class WorkflowViewerError(ValueError):
+    """Raised when workflow viewer input cannot be rendered safely."""
+
+
 def _load_yaml(path: Path) -> dict[str, Any]:
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as error:
+        mark = getattr(error, "problem_mark", None)
+        line = f" (line {mark.line + 1})" if mark is not None else ""
+        detail = getattr(error, "problem", None) or str(error).splitlines()[0]
+        raise WorkflowViewerError(f"{path.name} YAML 解析失败{line}: {detail}") from error
 
 
 def _normalize_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _normalize_list(value: Any) -> list[Any]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def _normalize_string_list(value: Any, *, field_name: str) -> tuple[list[str], list[str]]:
+    values = _normalize_list(value)
+    normalized: list[str] = []
+    duplicates: list[str] = []
+    seen: set[str] = set()
+    for index, item in enumerate(values):
+        if not isinstance(item, str) or not item.strip():
+            raise WorkflowViewerError(
+                f"{field_name}[{index}] 必须是非空字符串，当前为 {type(item).__name__}"
+            )
+        text = item.strip()
+        if text in seen:
+            duplicates.append(text)
+            continue
+        seen.add(text)
+        normalized.append(text)
+    return normalized, duplicates
+
+
+def _require_mapping(value: Any, *, field_name: str) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return value
+    raise WorkflowViewerError(f"{field_name} 必须是字典，当前为 {type(value).__name__}")
+
+
+def _find_display_root(*paths: Path) -> Path:
+    common_path = Path(os.path.commonpath([str(path.resolve()) for path in paths]))
+    for candidate in (common_path, *common_path.parents):
+        if (candidate / ".git").exists():
+            return candidate
+    return common_path
 
 
 def _safe_relative(path: Path, root: Path) -> str:
@@ -85,17 +139,41 @@ def _group_for_step(step_id: str) -> dict[str, str]:
     }
 
 
+def _load_step_documents(steps_dir: Path) -> tuple[dict[str, tuple[Path, dict[str, Any]]], dict[str, tuple[Path, dict[str, Any]]]]:
+    docs_by_id: dict[str, tuple[Path, dict[str, Any]]] = {}
+    docs_by_stem: dict[str, tuple[Path, dict[str, Any]]] = {}
+    for step_path in sorted(steps_dir.glob("step_*.yaml"), key=lambda path: (_step_number(path.stem), path.name)):
+        doc = _load_yaml(step_path)
+        if not isinstance(doc, dict):
+            raise WorkflowViewerError(f"{step_path.name} 顶层结构必须是字典，当前为 {type(doc).__name__}")
+        step_id_value = doc.get("step_id") or step_path.stem
+        if not isinstance(step_id_value, str) or not step_id_value.strip():
+            raise WorkflowViewerError(f"{step_path.name} 缺少有效的 step_id")
+        step_id = step_id_value.strip()
+        if step_id in docs_by_id:
+            raise WorkflowViewerError(f"发现重复的 step_id: {step_id}")
+        entry = (step_path, doc)
+        docs_by_id[step_id] = entry
+        docs_by_stem[step_path.stem] = entry
+    return docs_by_id, docs_by_stem
+
+
 def _load_latest_issue_report(report_root: Path) -> dict[str, Any] | None:
     if not report_root.exists():
         return None
-    candidates = sorted(report_root.glob("*/report.json"))
-    if not candidates:
-        return None
-    latest = candidates[-1]
-    try:
-        return json.loads(latest.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
+    candidates = sorted(
+        report_root.glob("*/report.json"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for candidate in candidates:
+        try:
+            report = json.loads(candidate.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        if isinstance(report, dict):
+            return report
+    return None
 
 
 def _build_issue_summary(issue_report: dict[str, Any] | None) -> tuple[dict[str, dict[str, int]], dict[str, int], dict[str, list[dict[str, Any]]], int]:
@@ -499,30 +577,39 @@ def build_viewer_data(
     issues_report_path: Path | None = None,
 ) -> dict[str, Any]:
     workflow = _load_yaml(workflow_path)
-    steps = workflow.get("steps") or []
-    conclusions = workflow.get("conclusions") or {}
+    if not isinstance(workflow, dict):
+        raise WorkflowViewerError(
+            f"{workflow_path.name} 顶层结构必须是字典，当前为 {type(workflow).__name__}"
+        )
+    steps, _ = _normalize_string_list(workflow.get("steps"), field_name="workflow.steps")
+    conclusions = _require_mapping(workflow.get("conclusions"), field_name="workflow.conclusions")
+    start_nodes, _ = _normalize_string_list(workflow.get("start_node"), field_name="workflow.start_node")
 
     if issues_report_path and issues_report_path.exists():
         try:
             issue_report = json.loads(issues_report_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
-            issue_report = None
+            raise WorkflowViewerError(f"{issues_report_path.name} 不是有效的 JSON 报告") from None
+        if not isinstance(issue_report, dict):
+            raise WorkflowViewerError(f"{issues_report_path.name} 顶层结构必须是字典")
     else:
         issue_report = _load_latest_issue_report(report_root) if report_root else None
 
     issues_by_node, global_issue_counts, issue_items_by_node, issue_total = _build_issue_summary(issue_report)
-    repo_root = workflow_path.parents[2]
+    repo_root = _find_display_root(workflow_path, steps_dir)
+    step_docs_by_id, step_docs_by_stem = _load_step_documents(steps_dir)
 
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
     step_node_map: dict[str, dict[str, Any]] = {}
 
     for step_id in steps:
-        step_file = steps_dir / f"{step_id}.yaml"
-        if not step_file.exists():
+        step_entry = step_docs_by_id.get(step_id) or step_docs_by_stem.get(step_id)
+        if not step_entry:
             continue
-        doc = _load_yaml(step_file)
+        step_file, doc = step_entry
         group = _group_for_step(step_id)
+        transitions = _require_mapping(doc.get("transitions"), field_name=f"{step_file.name}.transitions")
         node = {
             "id": step_id,
             "kind": "step",
@@ -536,7 +623,7 @@ def build_viewer_data(
             "group_range": group["range"],
             "type_label": doc.get("type", "step"),
             "skills": doc.get("skills") or [],
-            "transitions": _summarize_transitions(doc.get("transitions") or {}),
+            "transitions": _summarize_transitions(transitions),
             "issue_counts": issues_by_node.get(step_id, {"critical": 0, "warning": 0, "info": 0}),
             "issue_items": issue_items_by_node.get(step_id, []),
         }
@@ -552,7 +639,7 @@ def build_viewer_data(
         nodes.append(node)
         step_node_map[step_id] = node
 
-        for rule in doc.get("transitions", {}).get("rules", []) or []:
+        for rule in transitions.get("rules", []) or []:
             target = rule.get("next_node", "")
             edges.append(
                 {
@@ -565,7 +652,10 @@ def build_viewer_data(
                     "route_label": rule.get("description", "") or rule.get("condition", "") or "rule",
                 }
             )
-        for key, target in (doc.get("transitions", {}).get("on_error") or {}).items():
+        for key, target in _require_mapping(
+            transitions.get("on_error"),
+            field_name=f"{step_file.name}.transitions.on_error",
+        ).items():
             edges.append(
                 {
                     "source": step_id,
@@ -577,11 +667,11 @@ def build_viewer_data(
                     "route_label": key,
                 }
             )
-        if doc.get("transitions", {}).get("default"):
+        if transitions.get("default"):
             edges.append(
                 {
                     "source": step_id,
-                    "target": doc.get("transitions", {}).get("default"),
+                    "target": transitions.get("default"),
                     "kind": "default",
                     "route_type": "default",
                     "description": "default",
@@ -592,6 +682,10 @@ def build_viewer_data(
 
     conclusion_nodes: list[dict[str, Any]] = []
     for conclusion_id, doc in conclusions.items():
+        if not isinstance(doc, dict):
+            raise WorkflowViewerError(
+                f"workflow.conclusions.{conclusion_id} 必须是字典，当前为 {type(doc).__name__}"
+            )
         node = {
             "id": conclusion_id,
             "kind": "conclusion",
@@ -616,7 +710,7 @@ def build_viewer_data(
         nodes.append(node)
         step_node_map[conclusion_id] = node
 
-    graph = _layout_graph(nodes, edges, workflow.get("start_node") or [])
+    graph = _layout_graph(nodes, edges, start_nodes)
     groups = _build_group_summaries(nodes)
 
     incoming_by_node: dict[str, list[str]] = defaultdict(list)
@@ -665,8 +759,8 @@ def build_viewer_data(
         "conclusion_count": len(conclusion_nodes),
         "edge_count": len(edges),
         "generated_at": datetime.now().isoformat(timespec="seconds"),
-        "start_nodes": workflow.get("start_node") or [],
-        "default_node_id": (workflow.get("start_node") or [None])[0] or (nodes[0]["id"] if nodes else ""),
+        "start_nodes": start_nodes,
+        "default_node_id": (start_nodes[0] if start_nodes else None) or (nodes[0]["id"] if nodes else ""),
     }
 
     return {

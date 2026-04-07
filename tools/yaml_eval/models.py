@@ -33,9 +33,26 @@ class Issue:
     line: int | None = None
 
 
+class YamlLoadError(ValueError):
+    """Raised when a YAML file cannot be parsed."""
+
+    def __init__(self, path: Path, error: yaml.YAMLError):
+        self.path = path
+        self.error = error
+        mark = getattr(error, "problem_mark", None)
+        self.line = mark.line + 1 if mark is not None else None
+        detail = getattr(error, "problem", None) or str(error).splitlines()[0]
+        self.detail = detail.strip()
+        location = f" (line {self.line})" if self.line else ""
+        super().__init__(f"{path.name}: YAML 解析失败{location}: {self.detail}")
+
+
 def load_yaml(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+        try:
+            return yaml.safe_load(handle)
+        except yaml.YAMLError as error:
+            raise YamlLoadError(path, error) from error
 
 
 def read_text(path: Path) -> str:
@@ -65,4 +82,3 @@ def collect_references(condition: str) -> tuple[set[str], set[str], set[str]]:
     extracted_fields = set(EXTRACTED_REF_RE.findall(condition))
     input_fields = set(INPUT_FACTS_RE.findall(condition))
     return state_steps, extracted_fields, input_fields
-
