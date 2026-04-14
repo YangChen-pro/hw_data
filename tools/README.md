@@ -1,6 +1,6 @@
 # 工具说明
 
-这个目录放的是 YAML 评估器和它的运行入口。
+这个目录放的是 YAML 评估器、workflow HTML 查看器和它们的运行入口。
 
 ## 怎么运行
 
@@ -10,11 +10,24 @@
 bash tools/run_example.sh
 ```
 
+这条命令默认评估的是：
+
+- `workflows/ping_unreachable/workflow.yaml`
+- `workflows/ping_unreachable/steps/*.yaml`
+
 如果你想把结果输出到自定义目录，也可以继续传参数：
 
 ```bash
 bash tools/run_example.sh \
   --output-dir reports/yaml_evaluation/ping_unreachable/manual_run
+```
+
+如果你想评估 `ap_offline` workflow，可以这样运行：
+
+```bash
+bash tools/run_example.sh \
+  --workflow workflows/ap_offline/workflow.yaml \
+  --steps-dir workflows/ap_offline/steps
 ```
 
 如果你想生成 workflow 的单页 HTML 流程图页面：
@@ -23,10 +36,17 @@ bash tools/run_example.sh \
 bash tools/run_viewer_example.sh
 ```
 
-脚本默认会使用 `conda` 环境 `claw`，然后评估：
+这条命令默认也是读取 `ping_unreachable`，并把结果输出到对应 namespace 目录。
 
-- `workflows/ping_unreachable/workflow.yaml`
-- `workflows/ping_unreachable/steps/*.yaml`
+如果你想为 `ap_offline` 生成 HTML 页面，可以这样运行：
+
+```bash
+bash tools/run_viewer_example.sh \
+  --workflow workflows/ap_offline/workflow.yaml \
+  --steps-dir workflows/ap_offline/steps
+```
+
+两个脚本都会使用 `conda` 环境 `claw` 执行对应 Python 入口。
 
 ## 输出是什么
 
@@ -34,6 +54,12 @@ bash tools/run_viewer_example.sh
 
 ```text
 reports/yaml_evaluation/ping_unreachable/<时间戳>/
+```
+
+这里的 `ping_unreachable` 是 workflow namespace。若你传入 `workflows/ap_offline/workflow.yaml`，默认输出会变成：
+
+```text
+reports/yaml_evaluation/ap_offline/<时间戳>/
 ```
 
 目录里有 4 个文件：
@@ -48,10 +74,18 @@ reports/yaml_evaluation/ping_unreachable/<时间戳>/
 - `workflows/ping_unreachable/workflow.yaml`
 - `workflows/ping_unreachable/steps`
 
+如果切换到其他 workflow，这两个字段也会自动切换为对应的仓库相对路径。
+
 HTML 查看器默认输出到：
 
 ```text
 reports/workflow_viewer/ping_unreachable/<时间戳>/index.html
+```
+
+同样地，若切换到 `ap_offline`，默认输出目录会变成：
+
+```text
+reports/workflow_viewer/ap_offline/<时间戳>/index.html
 ```
 
 它会把 workflow 里的跳转关系渲染成一张可点击、可聚焦的单页流程图。节点和边都可以点开看详情，若仓库里已有最近一次评估报告，还会自动给节点附加问题徽标。
@@ -101,6 +135,7 @@ conda run -n claw python -X utf8 tools/workflow_viewer/issue_summary_compat.test
 2. 打开最新生成的 `report.md`
 3. 先修 `critical`，再修 `warning`
 4. 修完后重新运行脚本验证结果是否减少
+5. 要验证其他主题时，补上 `--workflow` 和 `--steps-dir`
 
 ## HTML 查看器的最短路径
 
@@ -109,3 +144,4 @@ conda run -n claw python -X utf8 tools/workflow_viewer/issue_summary_compat.test
 3. 在图上点击节点或边
 4. 用顶部按钮切换视图、缩放或回到当前节点
 5. 在右侧详情面板看节点内容、技能、转移规则、跳转条件、分组摘要和问题徽标
+6. 若要查看 `ap_offline`，同样补上 `--workflow` 和 `--steps-dir`

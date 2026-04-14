@@ -1,13 +1,25 @@
 # 报告目录说明
 
-这里存放 YAML 评估器的输出结果。
+这里存放 YAML 评估器和 workflow HTML 查看器的输出结果。
 
 ## 目录结构
 
 通常会生成这样的目录：
 
 ```text
+reports/yaml_evaluation/<workflow_namespace>/<时间戳>/
+```
+
+例如当前仓库里最常见的是：
+
+```text
 reports/yaml_evaluation/ping_unreachable/<时间戳>/
+```
+
+如果评估的是 `workflows/ap_offline/workflow.yaml`，则会生成：
+
+```text
+reports/yaml_evaluation/ap_offline/<时间戳>/
 ```
 
 每次运行都会生成一份新的结果，不会覆盖历史结果。
@@ -26,10 +38,22 @@ reports/yaml_evaluation/ping_unreachable/<时间戳>/
 另一个常见输出目录是：
 
 ```text
-reports/workflow_viewer/ping_unreachable/<时间戳>/index.html
+reports/workflow_viewer/<workflow_namespace>/<时间戳>/index.html
 ```
 
 这是一份单页 HTML 流程图页面，用来浏览 workflow、点击节点/边查看详情和转移规则。
+
+例如当前已有：
+
+```text
+reports/workflow_viewer/ping_unreachable/<时间戳>/index.html
+```
+
+如果后续为 `ap_offline` 运行 viewer，则会生成：
+
+```text
+reports/workflow_viewer/ap_offline/<时间戳>/index.html
+```
 
 当前 HTML 查看器支持：
 

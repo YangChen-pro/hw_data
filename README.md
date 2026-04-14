@@ -4,12 +4,16 @@
 
 这个仓库用于存放从网络故障处理资料中抽取出来的结构化工作流。
 
-当前样例是 `ping_unreachable` 工作流：
+当前已经包含两类结构化 workflow，以及一组尚未完全结构化的原始资料：
 
-- 原始资料放在 `docs/source_materials/`
-- 结构化 YAML 产物放在 `workflows/`
+- `ping_unreachable`
+  - 已有完整结构化 YAML、评估工具默认输入和现成报告样例
+- `ap_offline`
+  - 已有完整结构化 YAML，可直接通过 CLI 参数传给评估器和 HTML viewer
+- `ap_online`
+  - 当前只有 `docs/source_materials/ap_online/` 下的 PDF 和分步笔记，尚未补齐 `workflows/ap_online/`
 
-当前工作的重点是评估和改进 YAML 工作流的质量，而不是从头重写故障处理知识。
+当前工作的重点是持续整理故障处理知识、评估已有 YAML workflow 质量，并逐步把原始资料补全为结构化产物。
 
 ## 目录结构
 
@@ -20,22 +24,38 @@
 ├── docs/
 │   ├── yaml_evaluation_guide.md
 │   └── source_materials/
+│       ├── ap_online/
+│       │   ├── ap_online_steps.pdf
+│       │   └── notes/
 │       └── ping_unreachable/
 │           ├── ping_unreachable_steps.pdf
 │           └── notes/
 ├── workflows/
+│   ├── ap_offline/
+│   │   ├── workflow.yaml
+│   │   └── steps/
 │   └── ping_unreachable/
 │       ├── workflow.yaml
 │       └── steps/
+├── reports/
+│   ├── yaml_evaluation/
+│   └── workflow_viewer/
+├── tools/
 └── .helloagents/
 ```
 
 ## 关键文件
 
 - `workflows/ping_unreachable/workflow.yaml`
-  - 工作流入口、步骤列表和结论定义
+  - Ping 不通故障定位的主 workflow，当前评估器和 viewer 的默认输入
 - `workflows/ping_unreachable/steps/*.yaml`
-  - 每个步骤的 skill、抽取字段和流转规则
+  - Ping 不通 workflow 的步骤定义
+- `workflows/ap_offline/workflow.yaml`
+  - AP 下线故障诊断的主 workflow，覆盖黑名单、静态 IP、License、心跳超时和设备内部异常等路径
+- `workflows/ap_offline/steps/*.yaml`
+  - AP 下线 workflow 的步骤定义
+- `docs/source_materials/ap_online/`
+  - AP 上线问题的原始资料，目前包含 PDF 和 6 份分步笔记，尚未映射到结构化 workflow
 - `docs/yaml_evaluation_guide.md`
   - 评估已有 YAML 的规则说明
 - `todo.md`
@@ -55,9 +75,10 @@
 ## 新人接手顺序
 
 1. 先阅读 `README.md`
-2. 打开 `workflows/ping_unreachable/workflow.yaml`
+2. 看 `workflows/` 和 `docs/source_materials/` 下当前有哪些主题已经结构化、哪些还只是原始资料
 3. 阅读 `docs/yaml_evaluation_guide.md`
-4. 按 `todo.md` 中的说明完成当前任务
+4. 如果要跑现成工具样例，先打开 `workflows/ping_unreachable/workflow.yaml`
+5. 按 `todo.md` 中的说明完成当前任务
 
 ## 评估工具
 
@@ -66,6 +87,8 @@
 - `tools/yaml_workflow_evaluator.py`
 - 运行方式：`conda run -n claw python tools/yaml_workflow_evaluator.py`
 - 默认输出：`reports/yaml_evaluation/ping_unreachable/<时间戳>/`
+- 默认输入：`workflows/ping_unreachable/workflow.yaml` 和 `workflows/ping_unreachable/steps/`
+- 自定义输入：可通过 `--workflow` 和 `--steps-dir` 切换到其他主题，例如 `ap_offline`
 - 新手说明：[`tools/README.md`](/Users/yangchen/Desktop/hw_data/tools/README.md)
 - 报告说明：[`reports/README.md`](/Users/yangchen/Desktop/hw_data/reports/README.md)
 
@@ -74,6 +97,8 @@
 - `tools/workflow_html_viewer.py`
 - 运行方式：`bash tools/run_viewer_example.sh`
 - 默认输出：`reports/workflow_viewer/ping_unreachable/<时间戳>/index.html`
+- 默认输入：`workflows/ping_unreachable/workflow.yaml` 和 `workflows/ping_unreachable/steps/`
+- 自定义输入：同样支持 `--workflow`、`--steps-dir`，输出目录会自动按 workflow 名称分 namespace
 - 页面形态：单页、图为中心的 workflow 查看器
 - 交互重点：点击节点或边查看详情；默认自动聚焦当前内容
 - 画布操作：鼠标滚轮默认平移，`Ctrl/Cmd + 滚轮` 缩放，拖拽空白区域平移
@@ -94,6 +119,7 @@
 1. 先打开 workflow HTML 查看器，理解流程跳转和分组范围
 2. 再运行评估器生成 `report.md`
 3. 最后按 `todo.md` 的检查项修正 YAML
+4. 如果主题还没有结构化 workflow（如当前的 `ap_online`），先整理 `docs/source_materials/<topic>/` 再新增 `workflows/<topic>/`
 
 ## 工作约定
 
