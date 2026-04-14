@@ -1,0 +1,57 @@
+step_id: step_06_check_network_packet_loss
+name: "检查网络丢包"
+content: |
+  心跳超时排查第一步：检查AP与AC之间的网络是否存在丢包。
+  
+  适用场景：AP因心跳超时下线。
+
+skills:
+  - skill_id: "ping"
+    inputs:
+      target_ip: "AP的IP地址"
+      count: "5"
+    selector:
+    extraction_schema:
+      - name: sent_packets
+        description: "发送的包数"
+        type: integer
+      - name: received_packets
+        description: "接收的包数"
+        type: integer
+      - name: packet_loss_rate
+        description: "丢包率"
+        type: string
+      - name: avg_latency
+        description: "平均延迟"
+        type: string
+      - name: [custom]has_packet_loss
+        description: "[custom] 是否存在丢包（true/false）"
+        type: boolean
+      - name: [custom]is_network_congested
+        description: "[custom] 网络是否拥塞（true/false）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "存在网络丢包"
+      condition: "extracted.has_packet_loss == True"
+      next_node: CONCLUSION_NETWORK_PACKET_LOSS
+    
+    - description: "网络延迟过高"
+      condition: "extracted.is_network_congested == True"
+      next_node: CONCLUSION_NETWORK_PACKET_LOSS
+    
+    - description: "网络正常"
+      condition: "extracted.has_packet_loss == False and extracted.is_network_congested == False"
+      next_node: step_07_check_cpu_defend
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_07_check_cpu_defend
+
+  on_error:
+    handler_execution_failed: step_07_check_cpu_defend
+    cli_command_execution_failed: step_07_check_cpu_defend
+    parse_failure: step_07_check_cpu_defend
+  
+  default: step_07_check_cpu_defend

@@ -1,0 +1,86 @@
+step_id: step_11_check_tc_packet_flood
+name: "检查TC报文泛洪"
+content: |
+  心跳超时排查第六步：检查是否存在TC报文泛洪。
+  
+  适用场景：无IP冲突但心跳超时。
+  
+  问题说明：
+  当STP检测到网络拓扑变化，会发送TC报文通知ARP模块对ARP表项进行老化或删除。
+  如果TC报文过多，会导致ARP表项频繁刷新，引发AP掉线。
+  
+  解决方案：
+  1. 开启MAC刷新ARP功能：mac-address update arp enable
+  2. 关闭ARP响应TC报文功能：undo arp topology-change disable
+
+skills:
+  - skill_id: "display stp topology-change"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: topology_change_count
+        description: "拓扑变化次数"
+        type: integer
+      - name: last_change_time
+        description: "最后一次拓扑变化时间"
+        type: string
+      - name: [custom]topology_change_frequent
+        description: "[custom] 拓扑变化是否频繁（true/false）"
+        type: boolean
+
+  - skill_id: "display stp tc-bpdu statistics"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: interface
+        description: "接口名称"
+        type: string
+      - name: tc_received
+        description: "接收的TC报文数"
+        type: integer
+      - name: tc_sent
+        description: "发送的TC报文数"
+        type: integer
+      - name: [custom]tc_flood_detected
+        description: "[custom] 是否检测到TC报文泛洪（true/false）"
+        type: boolean
+      - name: [custom]tc_rate_abnormal
+        description: "[custom] TC报文速率是否异常（true/false）"
+        type: boolean
+
+remediation_commands:
+  - description: "开启MAC刷新ARP功能"
+    command: "mac-address update arp enable"
+    view: "system-view"
+  - description: "关闭ARP响应TC报文功能"
+    command: "arp topology-change disable"
+    view: "system-view"
+
+transitions:
+  rules:
+    - description: "存在TC报文泛洪"
+      condition: "extracted.tc_flood_detected == True"
+      next_node: CONCLUSION_TC_PACKET_FLOOD
+    
+    - description: "TC报文速率异常"
+      condition: "extracted.tc_rate_abnormal == True"
+      next_node: CONCLUSION_TC_PACKET_FLOOD
+    
+    - description: "拓扑变化频繁"
+      condition: "extracted.topology_change_frequent == True"
+      next_node: CONCLUSION_TC_PACKET_FLOOD
+    
+    - description: "无TC报文泛洪"
+      condition: "extracted.tc_flood_detected == False and extracted.tc_rate_abnormal == False"
+      next_node: step_12_check_capwap_config
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_12_check_capwap_config
+
+  on_error:
+    handler_execution_failed: step_12_check_capwap_config
+    cli_command_execution_failed: step_12_check_capwap_config
+    parse_failure: step_12_check_capwap_config
+  
+  default: step_12_check_capwap_config

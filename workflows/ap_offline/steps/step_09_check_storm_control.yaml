@@ -1,0 +1,114 @@
+step_id: step_09_check_storm_control
+name: "检查风暴控制"
+content: |
+  心跳超时排查第四步：检查风暴控制是否抑制了心跳报文。
+  
+  适用场景：CPU正常但心跳超时。
+  
+  检查步骤：
+  1. 在交换机上执行display interface查看接口广播/组播报文统计
+  2. 执行display storm control查看风暴控制配置
+  3. 如果Action显示Error-Down，需要恢复接口状态
+
+skills:
+  - skill_id: "display interface"
+    inputs:
+      interface: "AP连接的接口名称（如10ge 1/0/1）"
+    selector:
+    extraction_schema:
+      - name: interface
+        description: "接口名称"
+        type: string
+      - name: interface_state
+        description: "接口状态（UP/DOWN）"
+        type: string
+      - name: broadcast_packets
+        description: "广播报文数"
+        type: integer
+      - name: multicast_packets
+        description: "组播报文数"
+        type: integer
+      - name: [custom]broadcast_storm_detected
+        description: "[custom] 是否检测到广播风暴（广播报文增长过快）"
+        type: boolean
+
+  - skill_id: "display storm control"
+    inputs:
+      interface: "AP连接的接口名称"
+    selector:
+    extraction_schema:
+      - name: interface
+        description: "接口名称"
+        type: string
+      - name: storm_type
+        description: "风暴控制类型（BC/MC/UUC）"
+        type: string
+      - name: action
+        description: "动作（Block/Normal/Error-Down）"
+        type: string
+      - name: last_status
+        description: "最后状态"
+        type: string
+      - name: [custom]storm_control_enabled
+        description: "[custom] 是否启用风暴控制（true/false）"
+        type: boolean
+      - name: [custom]interface_error_down
+        description: "[custom] 接口是否因风暴控制而Error-Down（true/false）"
+        type: boolean
+
+  - skill_id: "display error-down recovery"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: interface
+        description: "接口名称"
+        type: string
+      - name: cause
+        description: "Error-Down原因"
+        type: string
+      - name: recovery_time
+        description: "恢复时间"
+        type: string
+      - name: [custom]auto_recovery_enabled
+        description: "[custom] 是否启用自动恢复（true/false）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "接口因风暴控制Error-Down"
+      condition: "extracted.interface_error_down == True"
+      next_node: CONCLUSION_STORM_CONTROL_ERROR_DOWN
+    
+    - description: "检测到广播风暴"
+      condition: "extracted.broadcast_storm_detected == True"
+      next_node: CONCLUSION_STORM_CONTROL
+    
+    - description: "风暴控制正常或未启用"
+      condition: "extracted.interface_error_down == False and extracted.broadcast_storm_detected == False"
+      next_node: step_10_check_ip_conflict
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_10_check_ip_conflict
+
+  on_error:
+    handler_execution_failed: step_10_check_ip_conflict
+    cli_command_execution_failed: step_10_check_ip_conflict
+    parse_failure: step_10_check_ip_conflict
+  
+  default: step_10_check_ip_conflict
+
+remediation_commands:
+  manual_recovery:
+    description: "手动恢复Error-Down状态的接口"
+    commands:
+      - "shutdown"
+      - "undo shutdown"
+    alternative:
+      - "restart"
+  
+  auto_recovery:
+    description: "配置接口自动恢复功能（Error-Down发生前配置）"
+    commands:
+      - "error-down auto-recovery cause storm-control interval interval-value"
+    note: "interval-value为自动恢复延时时间，单位秒"

@@ -1,0 +1,45 @@
+step_id: step_07_check_cpu_defend
+name: "检查CPU防攻击策略"
+content: |
+  心跳超时排查第二步：检查CPU防攻击策略是否导致心跳报文被丢弃。
+  
+  适用场景：网络正常但心跳超时。
+
+skills:
+  - skill_id: "display cpu-defend statistics all"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: packet_type
+        description: "报文类型"
+        type: string
+      - name: passed_packets
+        description: "通过的报文数"
+        type: integer
+      - name: dropped_packets
+        description: "丢弃的报文数"
+        type: integer
+      - name: [custom]capwap_dropped
+        description: "[custom] CAPWAP报文是否被丢弃（true/false）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "CAPWAP报文被CPU防攻击丢弃"
+      condition: "extracted.capwap_dropped == True"
+      next_node: CONCLUSION_CPU_DEFEND_OVERFLOW
+    
+    - description: "CPU防攻击策略正常"
+      condition: "extracted.capwap_dropped == False"
+      next_node: step_08_check_cpu_overload
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_08_check_cpu_overload
+
+  on_error:
+    handler_execution_failed: step_08_check_cpu_overload
+    cli_command_execution_failed: step_08_check_cpu_overload
+    parse_failure: step_08_check_cpu_overload
+  
+  default: step_08_check_cpu_overload

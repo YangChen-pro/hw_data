@@ -1,0 +1,87 @@
+step_id: step_13_check_device_internal
+name: "检查设备内部异常"
+content: |
+  心跳超时排查第八步：检查设备内部是否存在异常。
+  
+  适用场景：CAPWAP配置正常但心跳超时，需要进一步排查设备内部问题。
+  
+  源材料要求（需人工介入）：
+  如有获取报文头的条件，需同时获取AP、AC侧CAPWAP报文，查看中间链路是否存在丢包。
+  此操作需要人工配合抓包工具完成，无法通过CLI命令自动化执行。
+  
+  自动化辅助检查：
+  可通过display ap system-info检查AP的硬件状态和固件信息，作为辅助诊断参考。
+  
+  其他建议：
+  1. 登录AP获取日志文件，查看AP掉线时间点的网络ping结果
+  2. 检查AP侧是否有硬件异常或固件问题
+  3. 联系技术支持人员进行深度定位
+
+skills:
+  - skill_id: "display ap system-info"
+    inputs:
+      ap_name: "AP名称或MAC地址"
+    selector:
+    extraction_schema:
+      - name: ap_name
+        description: "AP名称"
+        type: string
+      - name: ap_state
+        description: "AP状态"
+        type: string
+      - name: uptime
+        description: "运行时间"
+        type: string
+      - name: firmware_version
+        description: "固件版本"
+        type: string
+      - name: cpu_usage
+        description: "CPU使用率"
+        type: integer
+      - name: memory_usage
+        description: "内存使用率"
+        type: integer
+      - name: [custom]has_hardware_error
+        description: "[custom] 是否存在硬件错误（true/false）"
+        type: boolean
+      - name: [custom]has_software_error
+        description: "[custom] 是否存在软件错误（true/false）"
+        type: boolean
+      - name: [custom]error_description
+        description: "[custom] 错误描述"
+        type: string
+
+recommendations:
+  - "CAPWAP报文头分析需要人工介入：需使用抓包工具同时获取AP和AC侧报文，无法通过CLI自动化完成"
+  - "登录AP获取日志文件，分析掉线时间点的网络状态"
+  - "检查AP硬件状态和固件版本"
+  - "如问题仍未解决，请联系技术支持人员"
+
+transitions:
+  rules:
+    - description: "存在硬件错误"
+      condition: "extracted.has_hardware_error == True"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "存在软件错误"
+      condition: "extracted.has_software_error == True"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "AP状态异常"
+      condition: "extracted.ap_state not in ['normal', 'run', 'up', 'idle']"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部检查完成，需人工介入"
+      condition: "extracted.has_hardware_error == False and extracted.has_software_error == False"
+      next_node: CONCLUSION_MANUAL_CHECK
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  
+  default: CONCLUSION_MANUAL_CHECK

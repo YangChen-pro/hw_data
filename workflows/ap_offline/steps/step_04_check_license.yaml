@@ -1,0 +1,21 @@
+step_id: step_04_check_license
+name: "检查License状态"
+content: |
+  检查AC和AP的License状态，确定License问题的具体原因。
+  
+  处理建议：请联系华为售前或代理商购买新的License，加载新的License。
+
+skills: []
+
+transitions:
+  rules:
+    - description: "License问题需要联系华为购买"
+      condition: ""
+      next_node: CONCLUSION_LICENSE_EXPIRED
+
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  
+  default: CONCLUSION_MANUAL_CHECK

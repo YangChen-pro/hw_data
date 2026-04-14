@@ -1,0 +1,73 @@
+step_id: step_12_check_capwap_config
+name: "检查CAPWAP配置"
+content: |
+  心跳超时排查第七步：检查CAPWAP配置是否正确。
+  
+  适用场景：无TC报文泛洪但心跳超时。
+
+skills:
+  - skill_id: "display capwap configuration"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: source_interface
+        description: "CAPWAP源接口"
+        type: string
+      - name: heartbeat_interval
+        description: "心跳间隔"
+        type: integer
+      - name: heartbeat_timeout
+        description: "心跳超时时间"
+        type: integer
+      - name: echo_interval
+        description: "Echo间隔"
+        type: integer
+      - name: [custom]config_valid
+        description: "[custom] CAPWAP配置是否有效（true/false）"
+        type: boolean
+      - name: [custom]source_interface_up
+        description: "[custom] 源接口是否UP（true/false）"
+        type: boolean
+      - name: [custom]interval_too_short
+        description: "[custom] 心跳间隔是否过短（true/false）"
+        type: boolean
+
+remediation_commands:
+  - description: "恢复被shutdown的源接口"
+    command: "undo shutdown"
+    view: "interface vlanif"
+  - description: "修改CAPWAP源接口（如果配置了VLANIF 1）"
+    command: "undo capwap source interface vlanif 1"
+    view: "system-view"
+  - description: "配置正确的CAPWAP源接口"
+    command: "capwap source interface vlanif {vlan_id}"
+    view: "system-view"
+
+transitions:
+  rules:
+    - description: "CAPWAP源接口异常"
+      condition: "extracted.source_interface_up == False"
+      next_node: CONCLUSION_CAPWAP_CONFIG_ERROR
+    
+    - description: "心跳间隔配置过短"
+      condition: "extracted.interval_too_short == True"
+      next_node: CONCLUSION_CAPWAP_CONFIG_ERROR
+    
+    - description: "CAPWAP配置无效"
+      condition: "extracted.config_valid == False"
+      next_node: CONCLUSION_CAPWAP_CONFIG_ERROR
+    
+    - description: "CAPWAP配置正常"
+      condition: "extracted.config_valid == True and extracted.source_interface_up == True and extracted.interval_too_short == False"
+      next_node: step_13_check_device_internal
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_13_check_device_internal
+
+  on_error:
+    handler_execution_failed: step_13_check_device_internal
+    cli_command_execution_failed: step_13_check_device_internal
+    parse_failure: step_13_check_device_internal
+  
+  default: step_13_check_device_internal

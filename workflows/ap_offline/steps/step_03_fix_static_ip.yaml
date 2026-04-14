@@ -1,0 +1,163 @@
+step_id: step_03_fix_static_ip
+name: "检查并修复静态IP配置"
+content: |
+  独立入口步骤：检查AP静态IP配置是否正确并提供两种修复方法。
+  
+  适用场景：AP配置了静态IP但无法上线。
+  
+  提供两种修复方法：
+  - 方法一：配置AP使用DHCP动态获取IP
+  - 方法二：重新配置正确的静态IP地址
+
+skills:
+  # 方法一：DHCP动态获取方式
+  - skill_id: "enter_dhcp_mode"
+    description: "进入DHCP配置视图"
+    command: "diagnose ap-address address-mode"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: current_mode
+        description: "当前地址获取模式"
+        type: string
+
+  - skill_id: "set_mode_dhcp"
+    description: "配置AP使用DHCP获取IP"
+    command: "mode dhcp"
+    view: "diagnose ap-address address-mode"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: dhcp_config_result
+        description: "DHCP配置结果"
+        type: string
+
+  - skill_id: "emit_dhcp_config"
+    description: "提交DHCP配置"
+    command: "emit"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: emit_success
+        description: "配置提交是否成功"
+        type: boolean
+
+  - skill_id: "reboot_after_dhcp"
+    description: "重启AP使DHCP配置生效"
+    command: "reboot"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: reboot_initiated
+        description: "重启是否已发起"
+        type: boolean
+
+  # 方法二：静态IP配置方式
+  - skill_id: "enter_static_ip_mode"
+    description: "进入静态IP配置视图"
+    command: "diagnose ap-address ap-ipv4-address"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: current_ipv4_config
+        description: "当前IPv4配置"
+        type: string
+
+  - skill_id: "set_static_ip"
+    description: "配置静态IP地址、网关和子网掩码"
+    command: "ipv4-address {ipv4_address} gateway {gateway} subnet-mask {subnet_mask}"
+    view: "diagnose ap-address ap-ipv4-address"
+    inputs:
+      ipv4_address: "正确的IP地址"
+      gateway: "网关地址"
+      subnet_mask: "子网掩码位数(如24)"
+    selector:
+    extraction_schema:
+      - name: ipv4_address
+        description: "配置的IP地址"
+        type: string
+      - name: gateway
+        description: "配置的网关"
+        type: string
+      - name: subnet_mask
+        description: "配置的子网掩码"
+        type: string
+
+  - skill_id: "emit_static_config"
+    description: "提交静态IP配置"
+    command: "emit"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: emit_success
+        description: "配置提交是否成功"
+        type: boolean
+
+  - skill_id: "reboot_after_static"
+    description: "重启AP使静态IP配置生效"
+    command: "reboot"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: reboot_initiated
+        description: "重启是否已发起"
+        type: boolean
+
+  # 验证命令
+  - skill_id: "ping"
+    inputs:
+      target_ip: "AP的IP地址"
+      count: "3"
+    selector:
+    extraction_schema:
+      - name: sent_packets
+        description: "发送的包数"
+        type: integer
+      - name: received_packets
+        description: "接收的包数"
+        type: integer
+      - name: [custom]is_reachable
+        description: "[custom] AP是否可达(true/false)"
+        type: boolean
+
+transitions:
+  decision_point:
+    description: "选择修复方法"
+    options:
+      - option_id: "method_dhcp"
+        description: "方法一：配置AP使用DHCP动态获取IP"
+        condition: "user_choice == 'dhcp' or extracted.current_mode == 'static'"
+        workflow:
+          - enter_dhcp_mode
+          - set_mode_dhcp
+          - emit_dhcp_config
+          - reboot_after_dhcp
+
+      - option_id: "method_static_ip"
+        description: "方法二：重新配置正确的静态IP地址"
+        condition: "user_choice == 'static' or user_provides_ip_info"
+        workflow:
+          - enter_static_ip_mode
+          - set_static_ip
+          - emit_static_config
+          - reboot_after_static
+
+  rules:
+    - description: "配置完成后AP可达"
+      condition: "extracted.is_reachable == True"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "配置后AP仍不可达，需人工检查"
+      condition: "extracted.is_reachable == False"
+      next_node: CONCLUSION_MANUAL_CHECK
+    
+    - description: "其他情况需人工检查"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  
+  default: CONCLUSION_MANUAL_CHECK

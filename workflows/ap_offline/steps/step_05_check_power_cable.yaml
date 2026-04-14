@@ -1,0 +1,52 @@
+step_id: step_05_check_power_cable
+name: "检查供电和网线状态"
+content: |
+  检查AP的供电状态和网线连接状态。
+  
+  适用场景：AP因断电重启或供电异常下线。
+
+skills:
+  - skill_id: "virtual-cable-test"
+    inputs:
+      interface: "AP连接的接口名称（如10ge 0/0/2）"
+    selector:
+    extraction_schema:
+      - name: interface
+        description: "接口名称"
+        type: string
+      - name: pair_a_state
+        description: "Pair A状态"
+        type: string
+      - name: pair_b_state
+        description: "Pair B状态"
+        type: string
+      - name: pair_c_state
+        description: "Pair C状态"
+        type: string
+      - name: pair_d_state
+        description: "Pair D状态"
+        type: string
+      - name: [custom]cable_ok
+        description: "[custom] 网线是否正常（四个Pair状态均为OK）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "网线状态正常"
+      condition: "extracted.cable_ok == True"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "网线状态异常"
+      condition: "extracted.cable_ok == False"
+      next_node: CONCLUSION_CABLE_FAULT
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  
+  default: CONCLUSION_MANUAL_CHECK

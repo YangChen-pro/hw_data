@@ -1,0 +1,97 @@
+step_id: step_10_check_ip_conflict
+name: "检查IP地址冲突"
+content: |
+  心跳超时排查第五步：检查是否存在IP地址冲突或ARP Miss。
+  
+  适用场景：风暴控制正常但心跳超时。
+  
+  检查方法：
+  1. 执行display trapbuffer查看是否存在"ARP detects IP conflict"或"arp-miss"告警（源材料指定）
+  
+  扩展诊断方法（可选）：
+  - display arp：检查ARP表项，辅助确认IP冲突
+  - display dhcp snooping：检查DHCP绑定表，验证IP分配情况
+  注：以上扩展命令为增强诊断功能，可根据现场情况选择性执行
+
+skills:
+  - skill_id: "display trapbuffer"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: trap_type
+        description: "告警类型"
+        type: string
+      - name: trap_time
+        description: "告警时间"
+        type: string
+      - name: trap_message
+        description: "告警消息"
+        type: string
+      - name: [custom]ip_conflict_trap_detected
+        description: "[custom] 是否检测到IP冲突告警（true/false）"
+        type: boolean
+      - name: [custom]arp_miss_trap_detected
+        description: "[custom] 是否检测到ARP Miss告警（true/false）"
+        type: boolean
+
+  - skill_id: "display arp"
+    inputs:
+      ip_address: "AP的IP地址"
+    selector:
+    extraction_schema:
+      - name: ip_address
+        description: "IP地址"
+        type: string
+      - name: mac_address
+        description: "MAC地址"
+        type: string
+      - name: interface
+        description: "接口"
+        type: string
+      - name: [custom]ip_conflict_detected
+        description: "[custom] 是否检测到IP冲突（同一IP对应多个MAC）"
+        type: boolean
+      - name: [custom]conflict_mac_list
+        description: "[custom] 冲突的MAC地址列表"
+        type: string
+
+  - skill_id: "display dhcp snooping"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: ip_address
+        description: "IP地址"
+        type: string
+      - name: mac_address
+        description: "MAC地址"
+        type: string
+      - name: vlan
+        description: "VLAN"
+        type: integer
+      - name: interface
+        description: "接口"
+        type: string
+      - name: [custom]dhcp_binding_valid
+        description: "[custom] DHCP绑定表是否有效（true/false）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "存在IP地址冲突"
+      condition: "extracted.ip_conflict_detected == True"
+      next_node: CONCLUSION_IP_CONFLICT
+    
+    - description: "无IP冲突"
+      condition: "extracted.ip_conflict_detected == False"
+      next_node: step_11_check_tc_packet_flood
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_11_check_tc_packet_flood
+
+  on_error:
+    handler_execution_failed: step_11_check_tc_packet_flood
+    cli_command_execution_failed: step_11_check_tc_packet_flood
+    parse_failure: step_11_check_tc_packet_flood
+  
+  default: step_11_check_tc_packet_flood

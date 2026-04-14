@@ -1,0 +1,44 @@
+step_id: step_02_remove_blacklist
+name: "移除黑名单"
+content: |
+  独立入口步骤：将AP从黑名单中移除。
+  
+  适用场景：AP因被加入黑名单而下线。
+
+skills:
+  - skill_id: "display ap blacklist"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: ap_mac
+        description: "AP的MAC地址"
+        type: string
+  - skill_id: "undo ap blacklist mac ap-mac"
+    inputs:
+      ap_mac: "AP的MAC地址"
+    selector:
+    extraction_schema:
+      - name: [custom]remove_success
+        description: "[custom] 移除黑名单是否成功（true/false）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "AP在黑名单中，已移除"
+      condition: "extracted.remove_success == True"
+      next_node: CONCLUSION_AP_BLACKLISTED
+    
+    - description: "AP不在黑名单中"
+      condition: "extracted.remove_success == False"
+      next_node: CONCLUSION_MANUAL_CHECK
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  
+  default: CONCLUSION_MANUAL_CHECK

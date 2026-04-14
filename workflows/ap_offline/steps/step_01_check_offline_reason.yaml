@@ -1,0 +1,281 @@
+step_id: step_01_check_offline_reason
+name: "检查AP下线原因"
+content: |
+  查询AP下线原因，根据下线原因类型进行分流处理。
+  
+  主要检查项：
+  1. 配置变更类（预期操作，无需处理）
+  2. 黑名单类（需移除黑名单）
+  3. License类（需检查License状态）
+  4. 心跳超时类（需深入排查网络和设备）
+  5. 设备异常类（硬件或内部故障）
+  6. 配置不匹配类（射频/国家码/DTLS不匹配）
+  7. 其他类型（特殊场景处理）
+
+skills:
+  - skill_id: "display ap offline-record all"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: ap_mac
+        description: "AP的MAC地址"
+        type: string
+      - name: offline_reason
+        description: "AP下线原因描述"
+        type: string
+      - name: offline_time
+        description: "下线时间"
+        type: string
+      - name: [custom]reason_category
+        description: "[custom] 下线原因分类（配置变更/黑名单/License/心跳超时/设备异常/配置不匹配/其他）"
+        type: string
+
+transitions:
+  rules:
+    # 配置变更类（无需处理）
+    - description: "配置变更导致的下线"
+      condition: "extracted.offline_reason in ['The AC country code is modified', 'The AP is replaced', 'Reboot by ap update reset command', 'A command is delivered to reboot an AP', 'An AP is deleted', 'The DTLS configuration of the CAPWAP tunnel changes', \"The AP's factory settings are restored\", 'The dual-link networking configuration is modified', 'The AP name is modified', 'The AP group name is modified', 'The management VLAN is modified', 'AP provisioning parameters are set', 'The CAPWAP source IP address is deleted', 'The central AP proactively reboots RUs', 'The CAPWAP sensitive-info PSK is modified', 'The CAPWAP integrity-check PSK is modified', 'The wideband status change', 'Reboot for AP Channel-load-mode change', 'Reset for the data link DTLS configuration change', 'Reset for the AC list configuration change', 'Reset for the change of the IP address obtaining mode', 'Reset for the IP address configuration change', 'Reboot for the branch group of AP change', 'The CAPWAP DTLS authentication configuration of the AP is changed', 'Inner gateway mode change', 'Reset for the radio mode change', 'Reset for RTU license activation', 'DTLS data link status change', 'The AP type is modified', 'Reconnect by command']"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    # 黑名单类
+    - description: "AP被加入黑名单"
+      condition: "extracted.offline_reason == 'The AP is added to the blacklist'"
+      next_node: step_02_remove_blacklist
+    
+    # License类
+    - description: "License过期"
+      condition: "extracted.offline_reason == 'The license expires'"
+      next_node: CONCLUSION_LICENSE_EXPIRED
+    
+    - description: "License资源不足"
+      condition: "extracted.offline_reason == 'Insufficient license resources'"
+      next_node: CONCLUSION_LICENSE_INSUFFICIENT
+    
+    - description: "AC License过期"
+      condition: "extracted.offline_reason == 'The AC license expires'"
+      next_node: CONCLUSION_AC_LICENSE_EXPIRED
+    
+    - description: "WAC License过期"
+      condition: "extracted.offline_reason == 'The WAC license expires'"
+      next_node: CONCLUSION_WAC_LICENSE_EXPIRED
+    
+    - description: "RTU License不足"
+      condition: "extracted.offline_reason in ['Insufficient RTU license', 'Insufficient RTU license and normal license']"
+      next_node: CONCLUSION_RTU_LICENSE_INSUFFICIENT
+    
+    - description: "Demo License到期"
+      condition: "extracted.offline_reason == 'Reset for an overdue demo license'"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "云管理License过期且本地不足"
+      condition: "extracted.offline_reason == 'Cloud licenses expire, and local license resources are insufficient'"
+      next_node: CONCLUSION_LICENSE_INSUFFICIENT
+    
+    # 心跳超时类
+    - description: "CAPWAP数据隧道心跳超时"
+      condition: "extracted.offline_reason == 'Heartbeat packet transmission for the CAPWAP data tunnel between the AC and AP times out'"
+      next_node: step_06_check_network_packet_loss
+    
+    - description: "CAPWAP控制隧道心跳超时"
+      condition: "extracted.offline_reason == 'Heartbeat packet transmission for the CAPWAP control tunnel between the AC and AP times out'"
+      next_node: step_06_check_network_packet_loss
+    
+    - description: "CAPWAP链路异常-链路ID不匹配"
+      condition: "extracted.offline_reason == 'A CAPWAP tunnel is faulty (due to inconsistent link IDs)'"
+      next_node: CONCLUSION_CAPWAP_LINK_DOWN
+    
+    - description: "CAPWAP链路异常-校验失败"
+      condition: "extracted.offline_reason == 'A CAPWAP tunnel is faulty (due to a CAPWAP link entry verification failure)'"
+      next_node: CONCLUSION_CAPWAP_LINK_DOWN
+    
+    - description: "CAPWAP敏感信息PSK不匹配"
+      condition: "extracted.offline_reason == 'CAPWAP sensitive-info PSK mismatch'"
+      next_node: CONCLUSION_CAPWAP_PSK_MISMATCH
+    
+    - description: "CAPWAP链路down"
+      condition: "extracted.offline_reason == 'CAPWAP link down'"
+      next_node: CONCLUSION_CAPWAP_LINK_DOWN
+    
+    - description: "配置下发失败导致重启"
+      condition: "extracted.offline_reason == 'Reboot for AP config fail'"
+      next_node: step_06_check_network_packet_loss
+    
+    # 供电/硬件类
+    - description: "AP断电重启"
+      condition: "extracted.offline_reason == 'The AP is powered off and restarts'"
+      next_node: step_05_check_power_cable
+    
+    - description: "供电不足重启"
+      condition: "extracted.offline_reason == 'Reset for insufficient power supply'"
+      next_node: CONCLUSION_INSUFFICIENT_POWER
+    
+    - description: "手动复位键重启"
+      condition: "extracted.offline_reason == 'The reset button is pressed to reset the AP'"
+      next_node: CONCLUSION_RESET_BUTTON_PRESSED
+    
+    - description: "AP干扰导致重启"
+      condition: "extracted.offline_reason == 'The AP restarts due to AP interference'"
+      next_node: CONCLUSION_AP_INTERFERENCE
+    
+    - description: "极限温度导致重启"
+      condition: "extracted.offline_reason == 'An internal error (exceed the extreme temperature) occurs'"
+      next_node: CONCLUSION_EXTREME_TEMPERATURE
+    
+    # 中心AP类
+    - description: "中心AP掉线"
+      condition: "extracted.offline_reason == 'The central AP goes offline'"
+      next_node: CONCLUSION_CENTRAL_AP_OFFLINE
+    
+    # 配置不匹配类
+    - description: "射频类型不匹配"
+      condition: "extracted.offline_reason == 'The radio type is inconsistent between the AC and AP'"
+      next_node: CONCLUSION_RADIO_TYPE_MISMATCH
+    
+    - description: "国家码不匹配"
+      condition: "extracted.offline_reason == 'The country code is inconsistent on the AC and AP'"
+      next_node: CONCLUSION_COUNTRY_CODE_MISMATCH
+    
+    - description: "DTLS版本或加密算法不兼容"
+      condition: "extracted.offline_reason == 'Incompatible DTLS version or encryption algorithm'"
+      next_node: CONCLUSION_DTLS_INCOMPATIBLE
+    
+    # 设备内部异常类
+    - description: "设备内部异常-KP"
+      condition: "extracted.offline_reason == 'An internal error (KP) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-VOS信号"
+      condition: "extracted.offline_reason == 'An internal error (VOS signal error) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-MFPI转发"
+      condition: "extracted.offline_reason == 'An internal error (forwarding error monitored by MFPI) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-MSC PKO"
+      condition: "extracted.offline_reason == 'An internal error (PKO error monitored by MSC) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-定时器超时"
+      condition: "extracted.offline_reason == 'An internal error (reset due to timer expiration) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-CPLD写寄存器"
+      condition: "extracted.offline_reason == 'An internal error (reset of the write CPLD register) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "CANBUS复位重启"
+      condition: "extracted.offline_reason == 'The AP restarts due to a CANBUS reset'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-MFPI MSC"
+      condition: "extracted.offline_reason == 'An internal error (MSC error monitored by MFPI) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-MFPI MSU"
+      condition: "extracted.offline_reason == 'An internal error (MSU error monitored by MFPI) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-MFPI KAP"
+      condition: "extracted.offline_reason == 'An internal error (KAP error monitored by MFPI) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-TX DMA停止"
+      condition: "extracted.offline_reason == 'An internal error (TX DMA stop) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "设备内部异常-其他原因"
+      condition: "extracted.offline_reason == 'An internal error (other reason) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "WiFi芯片固件异常"
+      condition: "extracted.offline_reason == 'An internal error (Reset for firmware abnormal) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "网口异常自愈"
+      condition: "extracted.offline_reason == 'An internal error (Reset for abnormal network port self-healing) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "特定场景强制断开"
+      condition: "extracted.offline_reason == 'An internal error (Reset for the forcible AP disconnection in specific scenarios) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "系统运行慢导致重启"
+      condition: "extracted.offline_reason == 'An internal error (Reset for slow task switching) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "转发PBUF耗尽"
+      condition: "extracted.offline_reason == 'An internal error (Reset for MFPI detect CAP PBUF use out) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "AP异常自愈"
+      condition: "extracted.offline_reason == 'An internal error (Reset for ap abnormal self-healing) occurs'"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "redis-server进程异常"
+      condition: "extracted.offline_reason == 'An internal error (Reset for exception(redis-server exit)) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "confd进程异常"
+      condition: "extracted.offline_reason == 'An internal error (Reset for exception(confd exit)) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "callhome进程异常"
+      condition: "extracted.offline_reason == 'An internal error (Reset for exception(callhome exit)) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "进程异常导致重启"
+      condition: "extracted.offline_reason == 'An internal error (Reset for an abnormal process) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "内存耗尽"
+      condition: "extracted.offline_reason == 'An internal error (memory use out) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "Dophi-server进程异常"
+      condition: "extracted.offline_reason == 'An internal error (dophi-server exit) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "WiFi SDK自愈失败"
+      condition: "extracted.offline_reason == 'An internal error (Wi-Fi SDK self-healing failure) occurs'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    - description: "其他原因"
+      condition: "extracted.offline_reason == 'Other reasons'"
+      next_node: CONCLUSION_DEVICE_INTERNAL_ERROR
+    
+    # 其他类
+    - description: "强制断开-CAPWAP隧道满"
+      condition: "extracted.offline_reason == 'The AP is forcibly disconnected'"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "DTLS平滑导致掉线"
+      condition: "extracted.offline_reason == 'CAPWAP link down for DTLS smooth'"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "批量删除-主备切换"
+      condition: "extracted.offline_reason == 'Batch delete'"
+      next_node: CONCLUSION_BATCH_DELETE
+    
+    - description: "AC模式切换"
+      condition: "extracted.offline_reason == 'Reset for the AC mode switching'"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "NCE断连超过90天"
+      condition: "extracted.offline_reason == 'The device has been disconnected from the iMaster NCE-Campus for more than 90 days'"
+      next_node: CONCLUSION_NCE_DISCONNECTED
+    
+    - description: "NCE删除设备"
+      condition: "extracted.offline_reason == 'The device is deleted from the iMaster NCE-Campus'"
+      next_node: CONCLUSION_NO_ACTION_NEEDED
+    
+    - description: "其他未识别的下线原因"
+      condition: ""
+      next_node: CONCLUSION_MANUAL_CHECK
+
+  on_error:
+    handler_execution_failed: CONCLUSION_MANUAL_CHECK
+    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
+    parse_failure: CONCLUSION_MANUAL_CHECK
+  
+  default: CONCLUSION_MANUAL_CHECK

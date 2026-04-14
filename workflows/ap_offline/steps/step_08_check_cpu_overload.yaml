@@ -1,0 +1,42 @@
+step_id: step_08_check_cpu_overload
+name: "检查CPU过载"
+content: |
+  心跳超时排查第三步：检查AC或AP的CPU是否过载。
+  
+  适用场景：CPU防攻击策略正常但心跳超时。
+
+skills:
+  - skill_id: "display cpu-usage"
+    inputs: {}
+    selector:
+    extraction_schema:
+      - name: cpu_usage
+        description: "CPU使用率"
+        type: integer
+      - name: top_process
+        description: "占用CPU最高的进程"
+        type: string
+      - name: [custom]cpu_overloaded
+        description: "[custom] CPU是否过载（使用率>80%为true）"
+        type: boolean
+
+transitions:
+  rules:
+    - description: "CPU过载"
+      condition: "extracted.cpu_overloaded == True"
+      next_node: CONCLUSION_CPU_OVERLOAD
+    
+    - description: "CPU正常"
+      condition: "extracted.cpu_overloaded == False"
+      next_node: step_09_check_storm_control
+    
+    - description: "其他情况"
+      condition: ""
+      next_node: step_09_check_storm_control
+
+  on_error:
+    handler_execution_failed: step_09_check_storm_control
+    cli_command_execution_failed: step_09_check_storm_control
+    parse_failure: step_09_check_storm_control
+  
+  default: step_09_check_storm_control
