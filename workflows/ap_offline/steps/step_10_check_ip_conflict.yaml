@@ -12,6 +12,7 @@ content: |
   - display arp：检查ARP表项，辅助确认IP冲突
   - display dhcp snooping：检查DHCP绑定表，验证IP分配情况
   注：以上扩展命令为增强诊断功能，可根据现场情况选择性执行
+type: diagnosis
 
 skills:
   - skill_id: "display trapbuffer"
@@ -27,10 +28,10 @@ skills:
       - name: trap_message
         description: "告警消息"
         type: string
-      - name: [custom]ip_conflict_trap_detected
+      - name: "[custom]ip_conflict_trap_detected"
         description: "[custom] 是否检测到IP冲突告警（true/false）"
         type: boolean
-      - name: [custom]arp_miss_trap_detected
+      - name: "[custom]arp_miss_trap_detected"
         description: "[custom] 是否检测到ARP Miss告警（true/false）"
         type: boolean
 
@@ -48,10 +49,10 @@ skills:
       - name: interface
         description: "接口"
         type: string
-      - name: [custom]ip_conflict_detected
+      - name: "[custom]ip_conflict_detected"
         description: "[custom] 是否检测到IP冲突（同一IP对应多个MAC）"
         type: boolean
-      - name: [custom]conflict_mac_list
+      - name: "[custom]conflict_mac_list"
         description: "[custom] 冲突的MAC地址列表"
         type: string
 
@@ -71,7 +72,7 @@ skills:
       - name: interface
         description: "接口"
         type: string
-      - name: [custom]dhcp_binding_valid
+      - name: "[custom]dhcp_binding_valid"
         description: "[custom] DHCP绑定表是否有效（true/false）"
         type: boolean
 

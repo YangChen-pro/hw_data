@@ -8,6 +8,7 @@ content: |
   提供两种修复方法：
   - 方法一：配置AP使用DHCP动态获取IP
   - 方法二：重新配置正确的静态IP地址
+type: config
 
 skills:
   # 方法一：DHCP动态获取方式
@@ -116,7 +117,7 @@ skills:
       - name: received_packets
         description: "接收的包数"
         type: integer
-      - name: [custom]is_reachable
+      - name: "[custom]is_reachable"
         description: "[custom] AP是否可达(true/false)"
         type: boolean
 

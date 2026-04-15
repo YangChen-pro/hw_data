@@ -3,227 +3,151 @@ name: "AP下线故障诊断"
 version: "1.0"
 description: "针对华为AP设备下线问题的自动化诊断工作流，覆盖配置变更、License、心跳超时、设备硬件等场景"
 input_schema: {}
+start_node:
+  - step_01_check_offline_reason
 
-step_nodes:
-  - step_id: step_01_check_offline_reason
-    name: "检查AP下线原因"
-    description: "入口步骤，查询AP下线原因并进行分流"
-    template_file: "steps/step_01_check_offline_reason.yaml"
-  
-  - step_id: step_02_remove_blacklist
-    name: "移除黑名单"
-    description: "将AP从黑名单中移除"
-    template_file: "steps/step_02_remove_blacklist.yaml"
-  
-  - step_id: step_03_fix_static_ip
-    name: "检查并修复静态IP配置"
-    description: "检查AP静态IP配置是否正确"
-    template_file: "steps/step_03_fix_static_ip.yaml"
-  
-  - step_id: step_04_check_license
-    name: "检查License状态"
-    description: "检查AC和AP的License状态"
-    template_file: "steps/step_04_check_license.yaml"
-  
-  - step_id: step_05_check_power_cable
-    name: "检查供电和网线状态"
-    description: "检查AP的供电状态和网线连接状态"
-    template_file: "steps/step_05_check_power_cable.yaml"
-  
-  - step_id: step_06_check_network_packet_loss
-    name: "检查网络丢包"
-    description: "心跳超时排查第一步：检查网络是否存在丢包"
-    template_file: "steps/step_06_check_network_packet_loss.yaml"
-  
-  - step_id: step_07_check_cpu_defend
-    name: "检查CPU防攻击策略"
-    description: "心跳超时排查第二步：检查CPU防攻击策略是否导致心跳丢包"
-    template_file: "steps/step_07_check_cpu_defend.yaml"
-  
-  - step_id: step_08_check_cpu_overload
-    name: "检查CPU过载"
-    description: "心跳超时排查第三步：检查AC或AP的CPU是否过载"
-    template_file: "steps/step_08_check_cpu_overload.yaml"
-  
-  - step_id: step_09_check_storm_control
-    name: "检查风暴控制"
-    description: "心跳超时排查第四步：检查风暴控制是否抑制了心跳报文"
-    template_file: "steps/step_09_check_storm_control.yaml"
-  
-  - step_id: step_10_check_ip_conflict
-    name: "检查IP地址冲突"
-    description: "心跳超时排查第五步：检查是否存在IP地址冲突"
-    template_file: "steps/step_10_check_ip_conflict.yaml"
-  
-  - step_id: step_11_check_tc_packet_flood
-    name: "检查TC报文泛洪"
-    description: "心跳超时排查第六步：检查是否存在TC报文泛洪"
-    template_file: "steps/step_11_check_tc_packet_flood.yaml"
-  
-  - step_id: step_12_check_capwap_config
-    name: "检查CAPWAP配置"
-    description: "心跳超时排查第七步：检查CAPWAP配置是否正确"
-    template_file: "steps/step_12_check_capwap_config.yaml"
-  
-  - step_id: step_13_check_device_internal
-    name: "检查设备内部异常"
-    description: "心跳超时排查第八步：检查设备内部是否存在异常"
-    template_file: "steps/step_13_check_device_internal.yaml"
+steps:
+  - step_01_check_offline_reason
+  - step_02_remove_blacklist
+  - step_03_fix_static_ip
+  - step_04_check_license
+  - step_05_check_power_cable
+  - step_06_check_network_packet_loss
+  - step_07_check_cpu_defend
+  - step_08_check_cpu_overload
+  - step_09_check_storm_control
+  - step_10_check_ip_conflict
+  - step_11_check_tc_packet_flood
+  - step_12_check_capwap_config
+  - step_13_check_device_internal
 
-conclusion_nodes:
-  - conclusion_id: CONCLUSION_NO_ACTION_NEEDED
-    name: "无需处理"
-    description: "AP下线是预期操作（如配置变更、重启等），无需人工干预"
-    action: "无需操作，系统将自动恢复"
-  
-  - conclusion_id: CONCLUSION_AP_BLACKLISTED
-    name: "AP在黑名单中"
-    description: "AP被加入黑名单导致下线"
-    action: "检查黑名单原因，确认后执行undo ap blacklist命令移除"
-  
-  - conclusion_id: CONCLUSION_STATIC_IP_ERROR
-    name: "静态IP配置错误"
-    description: "AP静态IP配置错误或存在IP冲突"
-    action: "检查并修正静态IP配置，确保IP地址在网络规划范围内且无冲突"
-  
-  - conclusion_id: CONCLUSION_LICENSE_EXPIRED
-    name: "AP License过期"
-    description: "AP License已过期"
-    action: "联系华为技术支持续期或更新License"
-  
-  - conclusion_id: CONCLUSION_LICENSE_INSUFFICIENT
-    name: "AP License数量不足"
-    description: "AP License数量不足"
-    action: "购买并申请扩容AP License"
-  
-  - conclusion_id: CONCLUSION_AC_LICENSE_EXPIRED
-    name: "AC License过期"
-    description: "AC License已过期"
-    action: "联系华为技术支持续期或更新AC License"
-  
-  - conclusion_id: CONCLUSION_WAC_LICENSE_EXPIRED
-    name: "WAC License过期"
-    description: "WAC License已过期"
-    action: "联系华为技术支持续期或更新WAC License"
-  
-  - conclusion_id: CONCLUSION_RTU_LICENSE_INSUFFICIENT
-    name: "RTU License数量不足"
-    description: "RTU License数量不足"
-    action: "购买并申请扩容RTU License"
-  
-  - conclusion_id: CONCLUSION_POWER_ISSUE
-    name: "供电异常"
-    description: "AP供电异常或不足"
-    action: "检查PoE交换机供电能力，确保供电功率满足AP需求"
-  
-  - conclusion_id: CONCLUSION_CABLE_FAULT
-    name: "网线故障"
-    description: "网线异常或断开"
-    action: "检查网线连接，更换故障网线"
-  
-  - conclusion_id: CONCLUSION_INSUFFICIENT_POWER
-    name: "供电不足"
-    description: "PoE供电功率不足"
-    action: "检查PoE交换机功率预算，考虑升级PoE交换机或使用外接电源"
-  
-  - conclusion_id: CONCLUSION_NETWORK_PACKET_LOSS
-    name: "网络丢包"
-    description: "AP与AC之间存在网络丢包"
-    action: "排查网络链路质量，检查中间设备状态"
-  
-  - conclusion_id: CONCLUSION_CPU_DEFEND_OVERFLOW
-    name: "CPU防攻击溢出"
-    description: "CPU防攻击策略导致心跳报文被丢弃"
-    action: "调整CPU防攻击策略的CPCAR限速参数，确保CAPWAP报文正常转发"
-  
-  - conclusion_id: CONCLUSION_CPU_OVERLOAD
-    name: "CPU过载"
-    description: "AC或AP的CPU过载"
-    action: "排查CPU占用高的原因，优化设备配置或升级设备"
-  
-  - conclusion_id: CONCLUSION_STORM_CONTROL
-    name: "风暴控制抑制"
-    description: "风暴控制抑制了心跳报文"
-    action: "调整风暴控制阈值或关闭风暴控制功能"
-  
-  - conclusion_id: CONCLUSION_IP_CONFLICT
-    name: "IP地址冲突"
-    description: "存在IP地址冲突"
-    action: "排查并解决IP地址冲突问题"
-  
-  - conclusion_id: CONCLUSION_TC_PACKET_FLOOD
-    name: "TC报文泛洪"
-    description: "存在TC报文泛洪"
-    action: "排查TC报文来源，优化生成树配置"
-  
-  - conclusion_id: CONCLUSION_CAPWAP_CONFIG_ERROR
-    name: "CAPWAP配置错误"
-    description: "CAPWAP配置不正确"
-    action: "检查并修正CAPWAP源接口、优先级、心跳间隔等配置"
-  
-  - conclusion_id: CONCLUSION_DEVICE_INTERNAL_ERROR
-    name: "设备内部异常"
-    description: "设备内部存在硬件或软件异常"
-    action: "收集设备日志，联系华为技术支持"
-  
-  - conclusion_id: CONCLUSION_RADIO_TYPE_MISMATCH
-    name: "射频类型不匹配"
-    description: "AP射频类型与AC配置不匹配"
-    action: "检查AP射频类型，调整AC配置以匹配AP"
-  
-  - conclusion_id: CONCLUSION_COUNTRY_CODE_MISMATCH
-    name: "国家码不匹配"
-    description: "AP国家码与AC配置不匹配"
-    action: "检查AP国家码，调整AC配置以匹配AP"
-  
-  - conclusion_id: CONCLUSION_DTLS_INCOMPATIBLE
-    name: "DTLS加密不兼容"
-    description: "AP与AC的DTLS加密配置不兼容"
-    action: "检查AP和AC的DTLS版本和加密套件配置"
-  
-  - conclusion_id: CONCLUSION_RESET_BUTTON_PRESSED
-    name: "Reset按钮被按下"
-    description: "AP的Reset按钮被按下"
-    action: "确认是否为误操作，如是则重新配置AP"
-  
-  - conclusion_id: CONCLUSION_AP_INTERFERENCE
-    name: "AP受到干扰"
-    description: "AP受到严重射频干扰"
-    action: "排查干扰源，调整信道或功率配置"
-  
-  - conclusion_id: CONCLUSION_EXTREME_TEMPERATURE
-    name: "极端温度"
-    description: "AP工作环境温度超出正常范围"
-    action: "改善AP工作环境温度，确保在设备工作温度范围内"
-  
-  - conclusion_id: CONCLUSION_CENTRAL_AP_OFFLINE
-    name: "中心AP掉线"
-    description: "中心AP掉线导致子AP下线"
-    action: "优先排查并解决中心AP的问题"
-  
-  - conclusion_id: CONCLUSION_CAPWAP_PSK_MISMATCH
-    name: "CAPWAP预共享密钥不匹配"
-    description: "AP与AC的CAPWAP预共享密钥不匹配"
-    action: "检查并统一AP和AC的CAPWAP预共享密钥配置"
-  
-  - conclusion_id: CONCLUSION_CAPWAP_LINK_DOWN
-    name: "CAPWAP链路异常"
-    description: "CAPWAP链路异常"
-    action: "排查CAPWAP链路，检查网络连通性"
-  
-  - conclusion_id: CONCLUSION_BATCH_DELETE
-    name: "批量删除操作"
-    description: "AP被批量删除操作下线"
-    action: "确认是否为预期操作，如需恢复则重新添加AP"
-  
-  - conclusion_id: CONCLUSION_NCE_DISCONNECTED
-    name: "NCE断连"
-    description: "NCE与AC断开连接"
-    action: "排查NCE与AC之间的网络连通性"
-  
-  - conclusion_id: CONCLUSION_MANUAL_CHECK
-    name: "需要人工检查"
-    description: "无法自动诊断，需要人工介入检查"
-    action: "收集设备日志和现场信息，联系华为技术支持"
-
-initial_step: step_01_check_offline_reason
+conclusions:
+  CONCLUSION_NO_ACTION_NEEDED:
+    level: info
+    message: "AP下线是预期操作（如配置变更、重启等），无需人工干预"
+    suggestion: "无需操作，系统将自动恢复"
+  CONCLUSION_AP_BLACKLISTED:
+    level: error
+    message: "AP被加入黑名单导致下线"
+    suggestion: "检查黑名单原因，确认后执行 undo ap blacklist 命令移除"
+  CONCLUSION_STATIC_IP_ERROR:
+    level: error
+    message: "AP静态IP配置错误或存在IP冲突"
+    suggestion: "检查并修正静态IP配置，确保IP地址在网络规划范围内且无冲突"
+  CONCLUSION_LICENSE_EXPIRED:
+    level: error
+    message: "AP License已过期"
+    suggestion: "联系华为技术支持续期或更新License"
+  CONCLUSION_LICENSE_INSUFFICIENT:
+    level: error
+    message: "AP License数量不足"
+    suggestion: "购买并申请扩容AP License"
+  CONCLUSION_AC_LICENSE_EXPIRED:
+    level: error
+    message: "AC License已过期"
+    suggestion: "联系华为技术支持续期或更新AC License"
+  CONCLUSION_WAC_LICENSE_EXPIRED:
+    level: error
+    message: "WAC License已过期"
+    suggestion: "联系华为技术支持续期或更新WAC License"
+  CONCLUSION_RTU_LICENSE_INSUFFICIENT:
+    level: error
+    message: "RTU License数量不足"
+    suggestion: "购买并申请扩容RTU License"
+  CONCLUSION_POWER_ISSUE:
+    level: error
+    message: "AP供电异常或不足"
+    suggestion: "检查PoE交换机供电能力，确保供电功率满足AP需求"
+  CONCLUSION_CABLE_FAULT:
+    level: error
+    message: "网线异常或断开"
+    suggestion: "检查网线连接，更换故障网线"
+  CONCLUSION_INSUFFICIENT_POWER:
+    level: error
+    message: "PoE供电功率不足"
+    suggestion: "检查PoE交换机功率预算，考虑升级PoE交换机或使用外接电源"
+  CONCLUSION_NETWORK_PACKET_LOSS:
+    level: error
+    message: "AP与AC之间存在网络丢包"
+    suggestion: "排查网络链路质量，检查中间设备状态"
+  CONCLUSION_CPU_DEFEND_OVERFLOW:
+    level: error
+    message: "CPU防攻击策略导致心跳报文被丢弃"
+    suggestion: "调整CPU防攻击策略的CPCAR限速参数，确保CAPWAP报文正常转发"
+  CONCLUSION_CPU_OVERLOAD:
+    level: error
+    message: "AC或AP的CPU过载"
+    suggestion: "排查CPU占用高的原因，优化设备配置或升级设备"
+  CONCLUSION_STORM_CONTROL:
+    level: error
+    message: "风暴控制抑制了心跳报文"
+    suggestion: "调整风暴控制阈值或关闭风暴控制功能"
+  CONCLUSION_STORM_CONTROL_ERROR_DOWN:
+    level: error
+    message: "接口因风暴控制进入Error-Down状态，心跳报文无法正常转发"
+    suggestion: "先恢复接口状态，再检查是否存在广播或组播风暴"
+    repair_action: "在接口视图执行 shutdown 和 undo shutdown 恢复端口；如需预防重复触发，可配置 error-down auto-recovery cause storm-control interval <seconds>"
+  CONCLUSION_IP_CONFLICT:
+    level: error
+    message: "存在IP地址冲突"
+    suggestion: "排查并解决IP地址冲突问题"
+  CONCLUSION_TC_PACKET_FLOOD:
+    level: error
+    message: "存在TC报文泛洪"
+    suggestion: "排查TC报文来源，优化生成树配置"
+  CONCLUSION_CAPWAP_CONFIG_ERROR:
+    level: error
+    message: "CAPWAP配置不正确"
+    suggestion: "检查并修正CAPWAP源接口、优先级、心跳间隔等配置"
+  CONCLUSION_DEVICE_INTERNAL_ERROR:
+    level: error
+    message: "设备内部存在硬件或软件异常"
+    suggestion: "收集设备日志，联系华为技术支持"
+  CONCLUSION_RADIO_TYPE_MISMATCH:
+    level: error
+    message: "AP射频类型与AC配置不匹配"
+    suggestion: "检查AP射频类型，调整AC配置以匹配AP"
+  CONCLUSION_COUNTRY_CODE_MISMATCH:
+    level: error
+    message: "AP国家码与AC配置不匹配"
+    suggestion: "检查AP国家码，调整AC配置以匹配AP"
+  CONCLUSION_DTLS_INCOMPATIBLE:
+    level: error
+    message: "AP与AC的DTLS加密配置不兼容"
+    suggestion: "检查AP和AC的DTLS版本和加密套件配置"
+  CONCLUSION_RESET_BUTTON_PRESSED:
+    level: error
+    message: "AP的Reset按钮被按下"
+    suggestion: "确认是否为误操作，如是则重新配置AP"
+  CONCLUSION_AP_INTERFERENCE:
+    level: error
+    message: "AP受到严重射频干扰"
+    suggestion: "排查干扰源，调整信道或功率配置"
+  CONCLUSION_EXTREME_TEMPERATURE:
+    level: error
+    message: "AP工作环境温度超出正常范围"
+    suggestion: "改善AP工作环境温度，确保在设备工作温度范围内"
+  CONCLUSION_CENTRAL_AP_OFFLINE:
+    level: error
+    message: "中心AP掉线导致子AP下线"
+    suggestion: "优先排查并解决中心AP的问题"
+  CONCLUSION_CAPWAP_PSK_MISMATCH:
+    level: error
+    message: "AP与AC的CAPWAP预共享密钥不匹配"
+    suggestion: "检查并统一AP和AC的CAPWAP预共享密钥配置"
+  CONCLUSION_CAPWAP_LINK_DOWN:
+    level: error
+    message: "CAPWAP链路异常"
+    suggestion: "排查CAPWAP链路，检查网络连通性"
+  CONCLUSION_BATCH_DELETE:
+    level: info
+    message: "AP被批量删除操作下线"
+    suggestion: "确认是否为预期操作，如需恢复则重新添加AP"
+  CONCLUSION_NCE_DISCONNECTED:
+    level: error
+    message: "NCE与AC断开连接"
+    suggestion: "排查NCE与AC之间的网络连通性"
+  CONCLUSION_MANUAL_CHECK:
+    level: warning
+    message: "无法自动诊断，需要人工介入检查"
+    suggestion: "收集设备日志和现场信息，联系华为技术支持"

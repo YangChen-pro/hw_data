@@ -4,6 +4,12 @@ content: |
   心跳超时排查第七步：检查CAPWAP配置是否正确。
   
   适用场景：无TC报文泛洪但心跳超时。
+  
+  配置修正建议：
+  - 如源接口被 shutdown，可在对应接口视图执行 undo shutdown
+  - 如错误配置为 vlanif 1，可在系统视图执行 undo capwap source interface vlanif 1
+  - 重新配置正确源接口时，可执行 capwap source interface vlanif {vlan_id}
+type: diagnosis
 
 skills:
   - skill_id: "display capwap configuration"
@@ -22,26 +28,15 @@ skills:
       - name: echo_interval
         description: "Echo间隔"
         type: integer
-      - name: [custom]config_valid
+      - name: "[custom]config_valid"
         description: "[custom] CAPWAP配置是否有效（true/false）"
         type: boolean
-      - name: [custom]source_interface_up
+      - name: "[custom]source_interface_up"
         description: "[custom] 源接口是否UP（true/false）"
         type: boolean
-      - name: [custom]interval_too_short
+      - name: "[custom]interval_too_short"
         description: "[custom] 心跳间隔是否过短（true/false）"
         type: boolean
-
-remediation_commands:
-  - description: "恢复被shutdown的源接口"
-    command: "undo shutdown"
-    view: "interface vlanif"
-  - description: "修改CAPWAP源接口（如果配置了VLANIF 1）"
-    command: "undo capwap source interface vlanif 1"
-    view: "system-view"
-  - description: "配置正确的CAPWAP源接口"
-    command: "capwap source interface vlanif {vlan_id}"
-    view: "system-view"
 
 transitions:
   rules:

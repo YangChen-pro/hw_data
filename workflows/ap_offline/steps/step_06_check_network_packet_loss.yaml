@@ -4,6 +4,7 @@ content: |
   心跳超时排查第一步：检查AP与AC之间的网络是否存在丢包。
   
   适用场景：AP因心跳超时下线。
+type: diagnosis
 
 skills:
   - skill_id: "ping"
@@ -24,10 +25,10 @@ skills:
       - name: avg_latency
         description: "平均延迟"
         type: string
-      - name: [custom]has_packet_loss
+      - name: "[custom]has_packet_loss"
         description: "[custom] 是否存在丢包（true/false）"
         type: boolean
-      - name: [custom]is_network_congested
+      - name: "[custom]is_network_congested"
         description: "[custom] 网络是否拥塞（true/false）"
         type: boolean
 

@@ -16,6 +16,7 @@ content: |
   1. 登录AP获取日志文件，查看AP掉线时间点的网络ping结果
   2. 检查AP侧是否有硬件异常或固件问题
   3. 联系技术支持人员进行深度定位
+type: diagnosis
 
 skills:
   - skill_id: "display ap system-info"
@@ -41,21 +42,15 @@ skills:
       - name: memory_usage
         description: "内存使用率"
         type: integer
-      - name: [custom]has_hardware_error
+      - name: "[custom]has_hardware_error"
         description: "[custom] 是否存在硬件错误（true/false）"
         type: boolean
-      - name: [custom]has_software_error
+      - name: "[custom]has_software_error"
         description: "[custom] 是否存在软件错误（true/false）"
         type: boolean
-      - name: [custom]error_description
+      - name: "[custom]error_description"
         description: "[custom] 错误描述"
         type: string
-
-recommendations:
-  - "CAPWAP报文头分析需要人工介入：需使用抓包工具同时获取AP和AC侧报文，无法通过CLI自动化完成"
-  - "登录AP获取日志文件，分析掉线时间点的网络状态"
-  - "检查AP硬件状态和固件版本"
-  - "如问题仍未解决，请联系技术支持人员"
 
 transitions:
   rules:

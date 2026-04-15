@@ -4,6 +4,7 @@ content: |
   检查AP的供电状态和网线连接状态。
   
   适用场景：AP因断电重启或供电异常下线。
+type: diagnosis
 
 skills:
   - skill_id: "virtual-cable-test"
@@ -26,7 +27,7 @@ skills:
       - name: pair_d_state
         description: "Pair D状态"
         type: string
-      - name: [custom]cable_ok
+      - name: "[custom]cable_ok"
         description: "[custom] 网线是否正常（四个Pair状态均为OK）"
         type: boolean
 

@@ -11,6 +11,7 @@ content: |
   5. 设备异常类（硬件或内部故障）
   6. 配置不匹配类（射频/国家码/DTLS不匹配）
   7. 其他类型（特殊场景处理）
+type: diagnosis
 
 skills:
   - skill_id: "display ap offline-record all"
@@ -26,7 +27,7 @@ skills:
       - name: offline_time
         description: "下线时间"
         type: string
-      - name: [custom]reason_category
+      - name: "[custom]reason_category"
         description: "[custom] 下线原因分类（配置变更/黑名单/License/心跳超时/设备异常/配置不匹配/其他）"
         type: string
 

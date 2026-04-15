@@ -4,6 +4,7 @@ content: |
   独立入口步骤：将AP从黑名单中移除。
   
   适用场景：AP因被加入黑名单而下线。
+type: config
 
 skills:
   - skill_id: "display ap blacklist"
@@ -18,7 +19,7 @@ skills:
       ap_mac: "AP的MAC地址"
     selector:
     extraction_schema:
-      - name: [custom]remove_success
+      - name: "[custom]remove_success"
         description: "[custom] 移除黑名单是否成功（true/false）"
         type: boolean
 

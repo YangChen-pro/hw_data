@@ -4,6 +4,7 @@ content: |
   心跳超时排查第二步：检查CPU防攻击策略是否导致心跳报文被丢弃。
   
   适用场景：网络正常但心跳超时。
+type: diagnosis
 
 skills:
   - skill_id: "display cpu-defend statistics all"
@@ -19,7 +20,7 @@ skills:
       - name: dropped_packets
         description: "丢弃的报文数"
         type: integer
-      - name: [custom]capwap_dropped
+      - name: "[custom]capwap_dropped"
         description: "[custom] CAPWAP报文是否被丢弃（true/false）"
         type: boolean
 

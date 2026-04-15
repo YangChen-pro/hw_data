@@ -9,6 +9,11 @@ content: |
   1. 在交换机上执行display interface查看接口广播/组播报文统计
   2. 执行display storm control查看风暴控制配置
   3. 如果Action显示Error-Down，需要恢复接口状态
+  
+  恢复建议：
+  - 手动恢复Error-Down接口：依次执行 shutdown、undo shutdown
+  - 需要预防重复触发时，可提前配置 error-down auto-recovery cause storm-control interval interval-value
+type: diagnosis
 
 skills:
   - skill_id: "display interface"
@@ -28,7 +33,7 @@ skills:
       - name: multicast_packets
         description: "组播报文数"
         type: integer
-      - name: [custom]broadcast_storm_detected
+      - name: "[custom]broadcast_storm_detected"
         description: "[custom] 是否检测到广播风暴（广播报文增长过快）"
         type: boolean
 
@@ -49,10 +54,10 @@ skills:
       - name: last_status
         description: "最后状态"
         type: string
-      - name: [custom]storm_control_enabled
+      - name: "[custom]storm_control_enabled"
         description: "[custom] 是否启用风暴控制（true/false）"
         type: boolean
-      - name: [custom]interface_error_down
+      - name: "[custom]interface_error_down"
         description: "[custom] 接口是否因风暴控制而Error-Down（true/false）"
         type: boolean
 
@@ -69,7 +74,7 @@ skills:
       - name: recovery_time
         description: "恢复时间"
         type: string
-      - name: [custom]auto_recovery_enabled
+      - name: "[custom]auto_recovery_enabled"
         description: "[custom] 是否启用自动恢复（true/false）"
         type: boolean
 
@@ -97,18 +102,3 @@ transitions:
     parse_failure: step_10_check_ip_conflict
   
   default: step_10_check_ip_conflict
-
-remediation_commands:
-  manual_recovery:
-    description: "手动恢复Error-Down状态的接口"
-    commands:
-      - "shutdown"
-      - "undo shutdown"
-    alternative:
-      - "restart"
-  
-  auto_recovery:
-    description: "配置接口自动恢复功能（Error-Down发生前配置）"
-    commands:
-      - "error-down auto-recovery cause storm-control interval interval-value"
-    note: "interval-value为自动恢复延时时间，单位秒"

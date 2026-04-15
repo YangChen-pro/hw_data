@@ -4,6 +4,7 @@ content: |
   心跳超时排查第三步：检查AC或AP的CPU是否过载。
   
   适用场景：CPU防攻击策略正常但心跳超时。
+type: diagnosis
 
 skills:
   - skill_id: "display cpu-usage"
@@ -16,7 +17,7 @@ skills:
       - name: top_process
         description: "占用CPU最高的进程"
         type: string
-      - name: [custom]cpu_overloaded
+      - name: "[custom]cpu_overloaded"
         description: "[custom] CPU是否过载（使用率>80%为true）"
         type: boolean
 
