@@ -41,8 +41,8 @@
     p { margin: 0; }
     .lead { max-width: 760px; color: var(--muted); font-size: 18px; }
     .pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.72); color: var(--muted); font-size: 13px; }
-    .grid { display: grid; gap: 16px; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.72); color: var(--muted); font-size: 13px; max-width: 100%; overflow-wrap: anywhere; }
+    .grid { display: grid; gap: 16px; min-width: 0; }
     .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     section { margin-top: 26px; }
@@ -52,6 +52,8 @@
       background: var(--paper);
       padding: 20px;
       box-shadow: 0 12px 34px rgba(83, 61, 35, .06);
+      min-width: 0;
+      max-width: 100%;
     }
     .formula {
       display: grid;
@@ -59,33 +61,41 @@
       gap: 12px;
       align-items: stretch;
     }
-    .formula .box { padding: 18px; border-radius: 18px; background: #f3eadc; border: 1px solid #e5d5bc; }
+    .formula .box { padding: 18px; border-radius: 18px; background: #f3eadc; border: 1px solid #e5d5bc; min-width: 0; }
     .formula .op { align-self: center; color: var(--accent); font-weight: 700; font-size: 24px; }
     .kicker { text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-size: 12px; font-weight: 800; }
     .score { font-size: 34px; font-weight: 850; letter-spacing: -0.04em; }
     .muted { color: var(--muted); }
-    .example { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-    .mini { border-radius: 15px; padding: 12px; border: 1px solid var(--line); background: #fffaf0; }
+    .example { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; min-width: 0; max-width: 100%; }
+    .mini { border-radius: 15px; padding: 12px; border: 1px solid var(--line); background: #fffaf0; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
     .mini.good { border-color: rgba(24,121,78,.28); background: #f0faf4; }
     .mini.bad { border-color: rgba(180,35,24,.28); background: #fff3ef; }
     code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    code { color: var(--code); background: #f1e7d7; border-radius: 6px; padding: 1px 5px; }
-    pre { margin: 8px 0 0; white-space: pre-wrap; font-size: 12px; line-height: 1.5; }
+    code { color: var(--code); background: #f1e7d7; border-radius: 6px; padding: 1px 5px; overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+    pre { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; max-width: 100%; font-size: 12px; line-height: 1.5; }
     ul { margin: 10px 0 0; padding-left: 18px; }
     li { margin: 4px 0; }
-    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 16px; background: var(--paper); }
-    th, td { border-bottom: 1px solid var(--line); padding: 12px 14px; text-align: left; vertical-align: top; }
+    table { width: 100%; table-layout: fixed; border-collapse: collapse; overflow: hidden; border-radius: 16px; background: var(--paper); }
+    th, td { border-bottom: 1px solid var(--line); padding: 12px 14px; text-align: left; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
     th { background: #efe2cf; font-size: 13px; color: #4d4031; }
     tr:last-child td { border-bottom: 0; }
-    .tag { display: inline-block; min-width: 42px; text-align: center; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 750; }
+    .tag { display: inline-block; max-width: 100%; min-width: 42px; text-align: center; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
     .tag.good { background: #daf5e5; color: var(--good); }
     .tag.warn { background: #fff1d6; color: var(--warn); }
     .tag.bad { background: #ffe0dc; color: var(--bad); }
     .footer { margin-top: 26px; color: var(--muted); font-size: 13px; }
-    @media (max-width: 900px) {
-      .grid-3, .grid-2, .formula, .example { grid-template-columns: 1fr; }
+    @media (max-width: 1180px) {
+      .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .grid-3, .grid-2, .formula, .example { grid-template-columns: minmax(0, 1fr); }
       .formula .op { display: none; }
       .hero { padding: 26px 22px; }
+    }
+    @media (max-width: 420px) {
+      main { padding: 24px 14px 42px; }
+      .hero, .card { padding: 18px; border-radius: 20px; }
+      th, td { padding: 10px 8px; }
     }
   </style>
 </head>
