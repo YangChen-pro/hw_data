@@ -124,7 +124,7 @@
     <div class="formula">
       <div class="box"><div class="kicker">Step 1</div><p>每个维度有若干检查项，例如“有没有 start_node”“condition 是否为空”。</p></div>
       <div class="op">→</div>
-      <div class="box"><div class="kicker">Step 2</div><p>重要检查项权重大，普通格式项权重小。维度分 = 通过权重 / 总权重 × 100。</p></div>
+      <div class="box"><div class="kicker">Step 2</div><p>严重检查项扣得多，普通格式项扣得少。维度分 = 已通过检查的扣分力度总和 / 所有检查的扣分力度总和 × 100。</p></div>
       <div class="op">→</div>
       <div class="box"><div class="kicker">Step 3</div><p>总分 = 6 个维度分的平均值。</p></div>
     </div>
@@ -179,7 +179,7 @@ extraction_schema: link_type</pre></div><div class="mini bad"><span class="tag b
 
   <section>
     <h2>具体检查与扣分规则</h2>
-    <p class="muted">下面是 <code>tools/yaml_quality/scorer.py</code> 当前真正执行的规则。每条规则不通过，就在对应维度里扣掉标注的权重；同类规则会按对象重复计算，例如每个 step、每个 skill、每条 transition rule 都会单独检查。</p>
+    <p class="muted">下面是 <code>tools/yaml_quality/scorer.py</code> 当前真正执行的规则。每条规则左侧的数字就是扣分力度：数字越大，没通过时扣得越多。同类规则会按对象重复计算，例如每个 step、每个 skill、每条 transition rule 都会单独检查。</p>
     <div class="grid grid-2 rule-detail-grid">
       <article class="card">
         <div class="kicker">01 · Schema</div>
@@ -279,9 +279,9 @@ extraction_schema: link_type</pre></div><div class="mini bad"><span class="tag b
   </section>
 
   <section class="card">
-    <h2>权重怎么理解</h2>
+    <h2>扣分力度怎么理解</h2>
     <table>
-      <thead><tr><th>权重</th><th>代表什么</th><th>例子</th></tr></thead>
+      <thead><tr><th>扣分力度</th><th>代表什么</th><th>例子</th></tr></thead>
       <tbody>
         <tr><td><span class="tag bad">5</span></td><td>流程跑不起来的基础问题。</td><td><code>workflow.steps</code> 为空；steps 列表里声明了 step 但文件不存在。</td></tr>
         <tr><td><span class="tag bad">4</span></td><td>入口或结论缺失，流程可读性严重受影响。</td><td><code>start_node</code> 为空；<code>conclusions</code> 为空。</td></tr>
