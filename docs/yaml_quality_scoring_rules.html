@@ -122,11 +122,16 @@
   <section class="card">
     <h2>怎么算分</h2>
     <div class="formula">
-      <div class="box"><div class="kicker">Step 1</div><p>每个维度有若干检查项，例如“有没有 start_node”“condition 是否为空”。</p></div>
+      <div class="box"><div class="kicker">Step 1</div><p>每个维度先列出一组检查项，例如“有没有 start_node”“condition 是否为空”。</p></div>
       <div class="op">→</div>
-      <div class="box"><div class="kicker">Step 2</div><p>严重检查项扣得多，普通格式项扣得少。维度分 = 已通过检查的扣分力度总和 / 所有检查的扣分力度总和 × 100。</p></div>
+      <div class="box"><div class="kicker">Step 2</div><p>每项左侧数字表示失败时的严重程度。没通过的数字越大，这一维掉分越多。</p></div>
       <div class="op">→</div>
-      <div class="box"><div class="kicker">Step 3</div><p>总分 = 6 个维度分的平均值。</p></div>
+      <div class="box"><div class="kicker">Step 3</div><p>先算每个维度自己的 0-100 分，再把 6 个维度平均成总分。</p></div>
+    </div>
+    <div class="mini" style="margin-top:14px;">
+      <span class="tag warn">例子</span>
+      <p>假设“骨架拓扑一致性”这一维所有检查数字加起来是 24。只有 <code>start_node</code> 为空没通过，它的数字是 4，那么这一维得分是 <code>(24 - 4) ÷ 24 × 100 = 83.3</code>。</p>
+      <p class="note">所以数字 4 不是“直接扣 4 分”，而是表示它占这个维度全部检查的 4/24。</p>
     </div>
     <p class="footer">例：某 workflow 六项得分是 100、100、100、92、99、100，则总分约为 98.5。</p>
   </section>
