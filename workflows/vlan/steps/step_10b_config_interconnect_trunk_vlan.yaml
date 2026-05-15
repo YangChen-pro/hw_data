@@ -1,0 +1,46 @@
+step_id: step_10b_config_interconnect_trunk_vlan
+name: 配置互联侧端口（Trunk）放行 VLAN
+content: 在当前设备上将互联侧端口链路类型调整为 Trunk，并通过 port trunk allow-pass vlan 放行业务 VLAN。完成后继续重新检查 MAC 地址表项。
+type: configuration
+preconditions:
+  rules:
+  - description: 互联侧端口 Trunk 配置需要 interconnect_interface 和 vlan_id。
+    condition: input.current_hop.interconnect_interface != '' and input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_port_link_type_trunk
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.interconnect_interface
+      description: 需要改为 Trunk 类型的互联侧端口
+  selector: null
+  extraction_schema: []
+- skill_id: skill_port_trunk_allow_pass_vlan
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.interconnect_interface
+      description: 需要放行业务 VLAN 的互联侧端口
+    vlan_id:
+      name: vlan_id
+      source_type: workflow_input
+      source_key: input.current_hop.vlan_id
+      description: 需要放行的 VLAN ID
+  selector: null
+  extraction_schema: []
+transitions:
+  rules:
+  - description: 互联侧端口 Trunk 配置完成，继续重新检查 MAC 地址表项。
+    condition: True
+    next_node: step_11_recheck_mac_address_table
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

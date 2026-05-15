@@ -1,0 +1,41 @@
+---
+step_id: step_17_check_lnp_configuration
+name: 检查 LNP 全局与接口配置
+content: 在当前设备执行 display Inp summary，结合 current_hop.current_interface 检查是否已启用全局 Inp enable，且目标接口下是否已配置 undo port negotiation disable。若任一条件不满足，则判定为 LNP 配置错误。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 检查 LNP 配置前需要 current_hop.current_interface 作为接口锚点。
+    condition: input.current_hop.current_interface != ''
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_display_inp_summary
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要核对 port negotiation 配置的接口
+  selector: 结合接口 {{ input.current_hop.current_interface }} 的 Inp 汇总回显，提取 global_inp_enabled 与 port_negotiation_disable_undone。
+  extraction_schema:
+  - name: global_inp_enabled
+    type: boolean
+    description: 设备是否已执行 Inp enable
+  - name: port_negotiation_disable_undone
+    type: boolean
+    description: 目标接口是否已执行 undo port negotiation disable
+transitions:
+  rules:
+  - description: 全局 Inp enable 或接口 undo port negotiation disable 缺失，判定为 LNP 配置错误。
+    condition: extracted.global_inp_enabled == false or extracted.port_negotiation_disable_undone == false
+    next_node: CONCLUSION_LNP_CONFIGURATION_ERROR
+  - description: LNP 全局和接口配置均满足要求，继续检查 OPS 脚本状态。
+    condition: extracted.global_inp_enabled == true and extracted.port_negotiation_disable_undone == true
+    next_node: step_18_check_ops_status
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

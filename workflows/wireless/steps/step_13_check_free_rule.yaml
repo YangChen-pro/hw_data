@@ -1,0 +1,26 @@
+---
+step_id: step_13_check_free_rule
+name: 检查免认证规则是否放通 DNS
+content: 执行 display free-rule-template configuration，检查免认证规则模板中是否配置了放通 DNS 服务器地址的规则。如果未放通 DNS，终端认证前无法解析域名，Portal 页面无法正常弹出。
+type: diagnosis
+skills:
+- skill_id: skill_display_free_rule_template_configuration
+  target_device: current_device
+  inputs: {}
+  selector: null
+  extraction_schema:
+  - name: free_rule_count
+    type: integer
+    description: 免认证规则总数
+  - name: dns_rule_exists
+    type: boolean
+    description: 是否存在放通 DNS 服务器地址的规则
+transitions:
+  rules:
+  - description: 免认证规则未放通 DNS 服务器地址。
+    condition: extracted.dns_rule_exists == false
+    next_node: CONCLUSION_FREE_RULE_DNS_MISSING
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

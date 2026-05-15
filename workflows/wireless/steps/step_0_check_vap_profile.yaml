@@ -1,0 +1,44 @@
+---
+step_id: step_0_check_vap_profile
+name: 按 SSID 查找 VAP 模板
+content: 在 AC 设备上执行 display vap-profile all，按 SSID 在表中定位对应的 VAP 模板，提取 VAP 模板名称、认证类型和关联 VLAN。若未找到对应 SSID，则说明 VAP 模板未创建或 SSID 配置错误。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 SSID 才能在 VAP 模板列表中定位目标模板。
+    condition: input.current_hop.ssid != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_vap_profile_all
+  target_device: current_device
+  inputs: {}
+  selector: 按 {{ input.current_hop.ssid }} 在 VAP 模板列表中定位 SSID 对应的行，提取 VAP 模板名称、认证类型和 VLAN。
+  extraction_schema:
+  - name: vap_profile_name
+    type: string
+    description: SSID 对应的 VAP 模板名称
+  - name: auth_type
+    type: string
+    description: VAP 模板的认证类型（如 Open、WPA2+802.1X、Open+Portal）
+  - name: service_vlan
+    type: string
+    description: VAP 模板绑定的业务 VLAN
+  - name: ssid_count
+    type: integer
+    description: 与目标 SSID 同名的 VAP 模板数量
+transitions:
+  rules:
+  - description: 未找到与 SSID 对应的 VAP 模板。
+    condition: extracted.vap_profile_name == ''
+    next_node: CONCLUSION_VAP_PROFILE_NOT_FOUND
+  - description: 多个 VAP 模板绑定了相同 SSID，可能导致接入异常。
+    condition: extracted.ssid_count > 1
+    next_node: CONCLUSION_MULTIPLE_VAP_SAME_SSID
+  - description: 找到唯一 VAP 模板，继续检查 VAP 模板详细配置。
+    condition: extracted.vap_profile_name != '' and extracted.ssid_count == 1
+    next_node: step_1_check_vap_config
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

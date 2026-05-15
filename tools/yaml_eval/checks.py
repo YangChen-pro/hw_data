@@ -338,6 +338,19 @@ def evaluate_step(
     return issues
 
 
+def extract_step_ref(value: Any) -> str | None:
+    """Return a step_id from either a plain string or a mapping reference."""
+    if isinstance(value, str):
+        step_id = value.strip()
+        return step_id or None
+    if isinstance(value, dict):
+        step_id = value.get("step_id")
+        if isinstance(step_id, str):
+            step_id = step_id.strip()
+            return step_id or None
+    return None
+
+
 def evaluate_workflow(workflow_path: Path, steps_dir: Path) -> tuple[list[Issue], dict[str, Any]]:
     issues: list[Issue] = []
     stats: dict[str, Any] = {
@@ -456,18 +469,34 @@ def evaluate_workflow(workflow_path: Path, steps_dir: Path) -> tuple[list[Issue]
             )
 
     start_nodes = normalize_list(workflow.get("start_node"))
+    stats["start_node_count"] = len(start_nodes)
     stats["workflow_step_count"] = len(workflow_step_ids)
 
-    for node in start_nodes:
-        if node not in workflow_step_ids:
+    for index, node in enumerate(start_nodes):
+        node_id = extract_step_ref(node)
+        node_path = f"start_node[{index}]"
+        if node_id is None:
             issues.append(
                 Issue(
                     file=workflow_path.name,
                     step_id="workflow",
                     severity="critical",
                     category="workflow",
-                    path="start_node",
-                    message=f"start_node 指向不存在的 step: {node}",
+                    path=node_path,
+                    message=f"start_node[{index}] 不是有效的 step 引用，当前为 {type(node).__name__}",
+                    recommendation="改为非空 step_id 字符串，或包含 step_id 字段的字典",
+                )
+            )
+            continue
+        if node_id not in workflow_step_ids:
+            issues.append(
+                Issue(
+                    file=workflow_path.name,
+                    step_id="workflow",
+                    severity="critical",
+                    category="workflow",
+                    path=node_path,
+                    message=f"start_node 指向不存在的 step: {node_id}",
                     recommendation="改为 workflow.steps 中已声明的 step_id",
                 )
             )

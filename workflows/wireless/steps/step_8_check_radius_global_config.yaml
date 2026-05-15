@@ -1,0 +1,23 @@
+---
+step_id: step_8_check_radius_global_config
+name: 检查 RADIUS 全局源 IP 配置
+content: 执行 display radius-server configuration，检查全局是否配置了与 RADIUS 服务器通信的源 IP 地址。
+type: diagnosis
+skills:
+- skill_id: skill_display_radius_server_configuration
+  target_device: current_device
+  inputs: {}
+  selector: null
+  extraction_schema:
+  - name: global_source_ip
+    type: string
+    description: 全局配置的 RADIUS 源 IP 地址，未配置时为 - 或空
+transitions:
+  rules:
+  - description: 继续检查 RADIUS 服务器模板配置。
+    condition: True
+    next_node: step_9_check_radius_template
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

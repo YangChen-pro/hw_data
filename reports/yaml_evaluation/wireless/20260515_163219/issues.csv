@@ -1,0 +1,16 @@
+file,step_id,severity,category,path,line,message,recommendation
+step_0_check_vap_profile.yaml,step_0_check_vap_profile,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_1_check_vap_config.yaml,step_1_check_vap_config,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_2_check_auth_profile.yaml,step_2_check_auth_profile,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_3_check_security_profile.yaml,step_3_check_security_profile,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_4_check_domain_config.yaml,step_4_check_domain_config,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_5_check_aaa_fail_record.yaml,step_5_check_aaa_fail_record,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_8_check_radius_global_config.yaml,step_8_check_radius_global_config,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_9_check_radius_template.yaml,step_9_check_radius_template,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_10_check_radius_server_item.yaml,step_10_check_radius_server_item,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_11_check_web_auth_server_config.yaml,step_11_check_web_auth_server_config,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_12_check_portal_server_template.yaml,step_12_check_portal_server_template,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_13_check_free_rule.yaml,step_13_check_free_rule,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_14_check_account_blocked.yaml,step_14_check_account_blocked,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_15_check_dot1x_quiet.yaml,step_15_check_dot1x_quiet,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_16_check_vlan_created.yaml,step_16_check_vlan_created,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id

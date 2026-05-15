@@ -1,28 +1,38 @@
+---
 step_id: step_11_check_arp_learning
-name: "检查ARP学习是否正确"
-content: "在源端执行display arp all命令，检查直连地址的ARP是否学习正常。若MAC ADDRESS字段显示实际MAC地址，则代表ARP学习正确；若显示为Incomplete，表示当前表项为临时ARP表项，尚未学习到ARP。"
+name: 检查本端 ARP 学习状态
+content: 执行 display arp，检查直连地址的 ARP 是否学习正常。如果 MAC ADDRESS 显示的是 MAC 地址，则代表 ARP 学习正确；如果显示的是 Incomplete 或无表项，则表示尚未学习到 ARP。
 type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 next_hop_ip 作为 ARP 表项查询目标，否则当前 step 不适用。
+    condition: input.current_hop.next_hop_ip != ''
+    on_fail:
+      action: skip
 skills:
-  - skill_id: "display arp all"
-    inputs: {}
-    selector: 
-    extraction_schema:
-      - name: MAC_ADDRESS
-        description: "[custom] 目的IP对应的ARP表项中的MAC地址字段。若学习到实际MAC地址则ARP正常；若为Incomplete则尚未学习完成；若无匹配表项则为空字符串"
-        type: string
+- skill_id: skill_display_arp
+  target_device: current_device
+  inputs: {}
+  selector: 按 {{ input.current_hop.next_hop_ip }} 在 arp_table 中定位当前 hop 对端邻接 IP 对应的 ARP 表项，并提取该表项的 mac_address 和 interface。
+  extraction_schema:
+  - name: mac_address
+    type: string
+    description: "[custom] 目的IP对应的ARP表项中的MAC地址字段。若学习到实际MAC地址则ARP正常；若为Incomplete则尚未学习完成；若无匹配表项则为空字符串"
+  - name: interface
+    type: string
+    description: "[custom] 目的IP对应ARP表项中的INTERFACE字段，用于与MAC地址表learned_from进行对比"
 transitions:
   rules:
-    - description: "ARP表项不存在，MAC ADDRESS为空，尚未学习到目的地址"
-      condition: "extracted.MAC_ADDRESS == ''"
-      next_node: step_13_check_arp_miss_overload
-    - description: "ARP表项为临时表项，MAC ADDRESS显示为Incomplete，尚未学习到对端MAC"
-      condition: "extracted.MAC_ADDRESS == 'Incomplete'"
-      next_node: step_13_check_arp_miss_overload
-    - description: "ARP学习正确，MAC ADDRESS为有效MAC地址，继续检查MAC出接口一致性"
-      condition: "extracted.MAC_ADDRESS != '' and extracted.MAC_ADDRESS != 'Incomplete'"
-      next_node: step_12_check_mac_outbound
+  - description: ARP表项不存在，MAC ADDRESS为空，尚未学习到目的地址
+    condition: extracted.mac_address == ''
+    next_node: CONCLUSION_ARP_NOT_LEARNED
+  - description: ARP表项为临时表项，MAC ADDRESS显示为Incomplete，尚未学习到对端MAC
+    condition: extracted.mac_address == 'Incomplete'
+    next_node: CONCLUSION_ARP_NOT_LEARNED
+  - description: ARP学习正确，MAC ADDRESS为有效MAC地址，继续检查MAC出接口一致性
+    condition: extracted.mac_address != '' and extracted.mac_address != 'Incomplete'
+    next_node: step_12_check_mac_outbound
   on_error:
-    handler_execution_failed: CONCLUSION_MANUAL_CHECK
-    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
-    parse_failure: CONCLUSION_MANUAL_CHECK
-  default: CONCLUSION_MANUAL_CHECK
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -1,0 +1,52 @@
+---
+step_id: step_5_check_aaa_fail_record
+name: 查询 AAA 上线失败记录
+content: 执行 display aaa online-fail-record mac-address，按终端 MAC 地址定位上线失败记录，提取失败原因（User online fail reason）进行分流判断。若未查到失败记录（fail_reason 为空），说明终端尚未发起认证或失败记录已老化，当前入口链路隐式结束，由编排器继续后续入口。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要终端 MAC 地址才能查询失败记录。
+    condition: input.facts.terminal_mac != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_aaa_online_fail_record
+  target_device: current_device
+  inputs:
+    mac_address:
+      name: mac_address
+      source_type: workflow_input
+      source_key: input.facts.terminal_mac
+      description: 故障终端的 MAC 地址
+  selector: 按 {{ input.facts.terminal_mac }} 定位失败记录，提取 fail_reason 和 authen_reply_message。
+  extraction_schema:
+  - name: fail_reason
+    type: string
+    description: 用户上线失败原因（如 Radius authentication reject、The radius server is up but has no reply、Authorization data error、Remote user is blocked）
+  - name: authen_reply_message
+    type: string
+    description: 认证回复消息
+  - name: user_access_type
+    type: string
+    description: 用户接入类型（如 802.1x、Web）
+transitions:
+  rules:
+  - description: RADIUS 认证拒绝，需排查服务器日志。
+    condition: extracted.fail_reason == 'Radius authentication reject'
+    next_node: CONCLUSION_RADIUS_AUTH_REJECT
+  - description: RADIUS 服务器无响应。
+    condition: extracted.fail_reason == 'The radius server is up but has no reply' or extracted.fail_reason == 'The radius server is not reachable'
+    next_node: CONCLUSION_RADIUS_NO_RESPONSE
+  - description: RADIUS 授权数据错误。
+    condition: extracted.fail_reason == 'Authorization data error'
+    next_node: CONCLUSION_RADIUS_AUTH_DATA_ERROR
+  - description: 认证账号被锁定。
+    condition: extracted.fail_reason == 'Remote user is blocked'
+    next_node: CONCLUSION_ACCOUNT_BLOCKED
+  - description: 失败原因不在已知模式中，需携带设备信息升级排查。
+    condition: extracted.fail_reason != ''
+    next_node: CONCLUSION_ESCALATE_WITH_DEVICE_INFO
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

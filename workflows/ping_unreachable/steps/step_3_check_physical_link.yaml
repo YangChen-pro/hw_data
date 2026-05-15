@@ -1,0 +1,53 @@
+---
+step_id: step_3_check_physical_link
+name: 检查双端 Eth-Trunk 成员数量
+content: 当前 step 仅对 Eth-Trunk 场景执行自动一致性检查：在本端和对端执行 display eth-trunk，按 current_hop.eth_trunk_id 定位目标 Trunk，仅比较两端成员接口总数。非 Eth-Trunk 场景直接进入下一步。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 当前 step 仅适用于 Eth-Trunk 场景；若无 trunk_id 则跳过并继续下一步。
+    condition: input.current_hop.eth_trunk_id != ''
+    on_fail:
+      action: skip
+      next_node: step_4_check_vlanif_status
+skills:
+- skill_id: skill_display_eth_trunk
+  target_device: current_device
+  result_key: local_eth_trunk
+  inputs:
+    trunk_id:
+      name: trunk_id
+      source_type: workflow_input
+      source_key: input.current_hop.eth_trunk_id
+      description: 若当前 hop 使用 Eth-Trunk，可传入对应 Trunk ID
+  selector: 按 {{ input.current_hop.eth_trunk_id }} 在 Eth-Trunk 输出中定位本端目标 Trunk，并提取成员接口总数。
+  extraction_schema:
+  - name: member_total_count
+    type: integer
+    description: 本端目标 Eth-Trunk 成员接口总数
+- skill_id: skill_display_eth_trunk
+  target_device: peer_device
+  result_key: peer_eth_trunk
+  inputs:
+    trunk_id:
+      name: trunk_id
+      source_type: workflow_input
+      source_key: input.current_hop.eth_trunk_id
+      description: 若当前 hop 使用 Eth-Trunk，可传入对应 Trunk ID
+  selector: 按 {{ input.current_hop.eth_trunk_id }} 在 Eth-Trunk 输出中定位对端目标 Trunk，并提取成员接口总数。
+  extraction_schema:
+  - name: member_total_count
+    type: integer
+    description: 对端目标 Eth-Trunk 成员接口总数
+transitions:
+  rules:
+  - description: Eth-Trunk 两端成员接口总数不一致，判定为链路成员配置异常。
+    condition: extracted.local_eth_trunk.member_total_count != extracted.peer_eth_trunk.member_total_count
+    next_node: CONCLUSION_PHYSICAL_LINK_FAULT
+  - description: Eth-Trunk 两端成员接口总数一致，继续下一步。
+    condition: extracted.local_eth_trunk.member_total_count == extracted.peer_eth_trunk.member_total_count
+    next_node: step_4_check_vlanif_status
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

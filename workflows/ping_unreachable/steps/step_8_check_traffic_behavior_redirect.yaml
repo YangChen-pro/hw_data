@@ -1,0 +1,31 @@
+---
+step_id: step_8_check_traffic_behavior_redirect
+name: 检查对端流行为重定向及关联流分类
+content: 在对端设备执行 display traffic behavior <behavior_name>，同时提取指定流行为的 classifier_name 与 redirect_nexthop。
+type: diagnosis
+skills:
+- skill_id: skill_display_traffic_behavior
+  target_device: peer_device
+  inputs:
+    behavior_name:
+      name: behavior_name
+      source_type: step_output
+      source_key: state.results.step_7_check_policy_routing_applied.behavior_name
+      description: 引用上一步识别出的流行为名称
+  selector: 针对指定 behavior_name 的流行为详情，同时提取 classifier_name 和 redirect_nexthop。
+  extraction_schema:
+  - name: classifier_name
+    type: string
+    description: "[custom] 当前流行为关联的流分类名称；若未关联则为空字符串"
+  - name: redirect_nexthop
+    type: string
+    description: "[custom] 流行为中Redirect ip-nexthop配置的下一跳IP地址。若存在重定向则为具体IP（如192.168.2.11），若无重定向则为空字符串"
+transitions:
+  rules:
+  - description: 流行为中存在Redirect ip-nexthop重定向，报文被重定向到其他下一跳，需进一步确认受影响流量范围
+    condition: extracted.redirect_nexthop != ''
+    next_node: step_9_check_classifier_acl
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

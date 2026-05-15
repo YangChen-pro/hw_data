@@ -1,0 +1,52 @@
+---
+step_id: step_1_check_port_vlan
+name: 检查双端接口类型与 VLAN 配置
+content: 在本端设备和对端设备上分别执行 display port vlan，查看 current_interface 和 peer_interface 的接口类型和 VLAN 配置。其中 Link Type 表示接口链路类型，Trunk VLAN List 表示接口动态加入和静态配置允许通过的 VLAN ID。确认两端接口类型和 VLAN 配置一致。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要同时具备本端和对端接口锚点，否则当前 step 不适用。
+    condition: input.current_hop.current_interface != '' and input.current_hop.peer_interface != ''
+    on_fail:
+      action: skip
+      next_node: step_2_check_ip_interface
+skills:
+- skill_id: skill_display_port_vlan
+  target_device: current_device
+  result_key: local_port_vlan
+  inputs: {}
+  selector: 按 {{ input.current_hop.current_interface }} 在 port_vlan_table 中定位本端接口对应的行，并仅基于该行提取链路类型和 VLAN 信息。
+  extraction_schema:
+  - name: link_type
+    type: string
+    description: 接口链路类型，如Access、Trunk或Hybrid
+  - name: trunk_vlan_list
+    type: string
+    description: Trunk接口允许通过的VLAN列表
+- skill_id: skill_display_port_vlan
+  target_device: peer_device
+  result_key: peer_port_vlan
+  inputs: {}
+  selector: 按 {{ input.current_hop.peer_interface }} 在 port_vlan_table 中定位对端接口对应的行，并仅基于该行提取链路类型和 VLAN 信息。
+  extraction_schema:
+  - name: link_type
+    type: string
+    description: 接口链路类型，如Access、Trunk或Hybrid
+  - name: trunk_vlan_list
+    type: string
+    description: Trunk接口允许通过的VLAN列表
+transitions:
+  rules:
+  - description: 两端接口类型和 VLAN 配置一致，继续下一步排查
+    condition: extracted.local_port_vlan.link_type == extracted.peer_port_vlan.link_type and extracted.local_port_vlan.trunk_vlan_list == extracted.peer_port_vlan.trunk_vlan_list
+    next_node: step_2_check_ip_interface
+  - description: 两端接口链路类型不一致，导致 Ping 不通
+    condition: extracted.local_port_vlan.link_type != extracted.peer_port_vlan.link_type
+    next_node: CONCLUSION_PORT_LINK_TYPE_MISMATCH
+  - description: 两端接口允许通过的 VLAN 配置不一致，导致 Ping 不通
+    condition: extracted.local_port_vlan.link_type == extracted.peer_port_vlan.link_type and extracted.local_port_vlan.trunk_vlan_list != extracted.peer_port_vlan.trunk_vlan_list
+    next_node: CONCLUSION_PORT_ALLOWED_VLAN_MISMATCH
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

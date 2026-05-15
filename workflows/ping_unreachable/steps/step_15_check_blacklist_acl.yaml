@@ -1,0 +1,37 @@
+---
+step_id: step_15_check_blacklist_acl
+name: 检查本端黑名单 ACL 是否命中对端地址
+content: 在本端设备上执行 display acl 查看黑名单调用的 ACL 具体内容，确认黑名单中是否包含当前 hop 对端 IP。黑名单中应用的 ACL，无论 rule 配置为 permit 还是 deny，命中该 ACL 的报文均会被丢弃。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要先获取黑名单关联的 ACL 编号，否则当前 step 不适用。
+    condition: state.results.step_14_check_cpu_defend_blacklist.blacklist_acl_number != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_acl
+  target_device: current_device
+  inputs:
+    acl_number:
+      name: acl_number
+      source_type: step_output
+      source_key: state.results.step_14_check_cpu_defend_blacklist.blacklist_acl_number
+      description: 引用上一步从 Blacklist 配置中提取出的 ACL 编号
+  selector: 在 acl_rule_table 中定位 source 与 {{ input.current_hop.peer_device }} 一致的 ACL 规则，并提取命中规则内容。
+  extraction_schema:
+  - name: rule
+    type: string
+    description: "[custom] ACL规则行内容，含source IP信息，如'rule 5 permit ip source 10.1.1.1 0'；若无规则则为空"
+  - name: rule_source_ip
+    type: string
+    description: "[custom] ACL规则source字段中的源IP（不含通配符）；若无source字段则为空字符串"
+transitions:
+  rules:
+  - description: ACL 规则 source IP 命中当前 hop 对端地址，确认黑名单导致报文被丢弃
+    condition: extracted.rule_source_ip == input.current_hop.peer_device
+    next_node: CONCLUSION_BLACKLIST_CONFIGURED
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

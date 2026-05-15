@@ -1,0 +1,35 @@
+---
+step_id: step_16_check_icmp_statistics_local
+name: 检查本端 ICMP 报文收发统计
+content: 进行 Ping 操作时，执行 display icmp statistics，查看 ICMP Echo Request 和 ICMP Echo Reply 报文收发是否一致，以及是否存在 bad checksum 统计计数。若 bad checksum 计数一直增长，需要检查对端设备回应的 ICMP 报文格式是否正确；若 echo 和 echo reply 数目不一致，则继续对比对端设备统计信息。
+type: diagnosis
+skills:
+- skill_id: skill_display_icmp_statistics
+  target_device: current_device
+  inputs: {}
+  selector: 
+  extraction_schema:
+  - name: bad_checksum_in
+    type: integer
+    description: "[custom] Input方向bad checksum字段计数，表示本端设备收到的校验错误ICMP报文数，持续增长说明对端设备协议栈报文格式不正确"
+  - name: echo_out
+    type: integer
+    description: "[custom] Output方向echo字段计数，表示本端设备发出的ICMP Echo Request报文数目"
+  - name: echo_reply_in
+    type: integer
+    description: "[custom] Input方向echo reply字段计数，表示本端设备收到的ICMP Echo Reply报文数目"
+transitions:
+  rules:
+  - description: bad checksum计数大于0，对端设备协议栈回应ICMP报文格式不正确
+    condition: extracted.bad_checksum_in > 0
+    next_node: CONCLUSION_ICMP_BAD_CHECKSUM
+  - description: echo与echo reply数目不一致，需在对端设备侧执行 display icmp statistics 进行对比分析
+    condition: extracted.echo_out != extracted.echo_reply_in
+    next_node: step_17_check_icmp_statistics_peer
+  - description: echo与echo reply数目一致但Ping仍不通，直接给出结论并提示继续判断报文收发情况
+    condition: extracted.echo_out == extracted.echo_reply_in
+    next_node: CONCLUSION_CHECK_PACKET_TX_RX
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -11,16 +11,20 @@
 - [x] 节点问题态与边的跳转语义分开表达
 - [x] 顶部起点列表已折叠为数量概览
 - [x] 评估报告已经输出为 `report.md / report.json / issues.csv`
-- [ ] 下一步：根据最新评估结果继续修正 YAML 内容
+- [ ] 下一步：基于 `extraction_guide.md` 抽象可量化 YAML 质量指标，并用图表展示各 workflow 得分
 
 ## 目标
 
-评估 `workflows/ping_unreachable/` 下现有 YAML 工作流的结构质量，在继续抽取或清理之前先识别出明显问题。
+评估 `workflows/` 下现有 YAML 工作流的结构质量，在继续抽取或清理之前先识别出明显问题，并逐步把 `extraction_guide.md` 中的抽取规则转化为可量化评分。
 
 ## 评估文件
 
 - `workflows/ping_unreachable/workflow.yaml`
 - `workflows/ping_unreachable/steps/*.yaml`
+- `workflows/vlan/workflow.yaml`
+- `workflows/vlan/steps/*.yaml`
+- `workflows/wireless/workflow.yaml`
+- `workflows/wireless/steps/*.yaml`
 
 ## 检查项
 
@@ -28,12 +32,16 @@
 2. 每个 `condition` 使用的字段和逻辑都合法。
 3. 每个 `inputs` 和 `selector` 都能被解析。
 4. 每个 `extraction_schema` 都与预期 skill 输出匹配。
+5. `input_schema`、`start_node`、`step` 拆分、`conclusions`、`skills` 与 `transitions` 符合 `extraction_guide.md` 的 Phase 1~4 自检规则。
+6. 后续图表需要使用 Matplotlib/plt，并配置中文字体；专业术语可保留英文。
 
 ## 交付结果
 
 - 一份按文件整理的问题清单
 - 一份重复性规则问题的简短总结
 - 一份需要产品或工程确认的边界问题列表
+- 一份按可量化指标输出的 workflow 质量得分表
+- 一张或多张中文图表，展示各 workflow 在结构完整性、字段来源、拓扑一致性、技能定义和表达式合法性上的得分
 
 ## 完成标准
 

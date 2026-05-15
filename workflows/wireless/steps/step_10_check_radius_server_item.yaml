@@ -1,0 +1,40 @@
+---
+step_id: step_10_check_radius_server_item
+name: 检查 RADIUS 服务器运行状态
+content: 执行 display radius-server item template，检查 RADIUS 服务器的 STState 是否为 STState-up 状态。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 RADIUS 服务器模板名称才能查询模板下服务器运行状态。
+    condition: input.current_hop.radius_server_template != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_radius_server_item
+  target_device: current_device
+  inputs:
+    radius_server_template:
+      name: radius_server_template
+      source_type: workflow_input
+      source_key: input.current_hop.radius_server_template
+      description: RADIUS 服务器模板名称，用于查询模板下服务器运行状态
+  selector: null
+  extraction_schema:
+  - name: st_state
+    type: string
+    description: RADIUS 服务器 STState 状态（STState-up 表示正常）
+  - name: server_ip
+    type: string
+    description: RADIUS 服务器 IP 地址
+  - name: server_type
+    type: string
+    description: 服务器类型（auth-server/acct-server）
+transitions:
+  rules:
+  - description: RADIUS 服务器状态异常，不是 STState-up。
+    condition: extracted.st_state != 'STState-up'
+    next_node: CONCLUSION_RADIUS_SERVER_DOWN
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -1,0 +1,41 @@
+---
+step_id: step_11_recheck_mac_address_table
+name: 重新检查当前设备 MAC 地址表项
+content: 完成 VLAN 配置修正后，再次在当前设备执行 display mac-address，按终端 MAC 复核 learned_from 与 vlan_vsi 是否已恢复正确。若仍不正确，则直接输出升级结论；若已正确，则继续检查端口隔离。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要终端 MAC、接入侧端口和 VLAN ID，才能完成 MAC 表项复核。
+    condition: input.facts.terminal_mac != '' and input.current_hop.current_interface != '' and input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: step_12_check_port_isolation
+skills:
+- skill_id: skill_display_mac_address
+  target_device: current_device
+  inputs:
+    mac_address:
+      name: mac_address
+      source_type: workflow_input
+      source_key: input.facts.terminal_mac
+      description: 需要复核的终端 MAC 地址
+  selector: 按 {{ input.facts.terminal_mac }} 在 mac_address_table 中定位终端 MAC 对应表项，并提取 learned_from 与 vlan_vsi。
+  extraction_schema:
+  - name: learned_from
+    type: string
+    description: 终端 MAC 对应的设备学习出接口
+  - name: vlan_vsi
+    type: integer
+    description: 终端 MAC 对应表项所属的 VLAN/VSI 编号
+transitions:
+  rules:
+  - description: MAC 地址表项已恢复正确，继续检查端口隔离。
+    condition: extracted.learned_from == input.current_hop.current_interface and extracted.vlan_vsi == input.current_hop.vlan_id
+    next_node: step_12_check_port_isolation
+  - description: MAC 地址表项仍未恢复正确，直接输出升级结论。
+    condition: extracted.learned_from != input.current_hop.current_interface or extracted.vlan_vsi != input.current_hop.vlan_id
+    next_node: CONCLUSION_ESCALATE_WITH_DEVICE_INFO
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -1,0 +1,38 @@
+---
+step_id: step_16_check_lnp_link_type
+name: 检查接口 link-type 配置
+content: 在当前设备执行 display current-configuration interface，聚焦当前 LNP 接口，并提取 port link-type。若其不是 negotiation-desirable 或 negotiation-auto，则判定 link-type 配置错误。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 检查 link-type 前需要 current_hop.current_interface。
+    condition: input.current_hop.current_interface != ''
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_display_current_configuration_interface
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要检查 link-type 的 LNP 接口
+  selector: 聚焦接口 {{ input.current_hop.current_interface }} 的当前配置，并提取 port_link_type。
+  extraction_schema:
+  - name: port_link_type
+    type: string
+    description: 接口下配置的 port link-type 值
+transitions:
+  rules:
+  - description: port link-type 不是 negotiation-desirable 或 negotiation-auto，说明配置有误。
+    condition: extracted.port_link_type != 'negotiation-desirable' and extracted.port_link_type != 'negotiation-auto'
+    next_node: CONCLUSION_LNP_LINK_TYPE_ERROR
+  - description: port link-type 已满足 LNP 要求，继续检查 LNP 全局与接口配置。
+    condition: extracted.port_link_type == 'negotiation-desirable' or extracted.port_link_type == 'negotiation-auto'
+    next_node: step_17_check_lnp_configuration
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

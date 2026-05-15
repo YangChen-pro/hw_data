@@ -1,0 +1,38 @@
+---
+step_id: step_12_check_port_isolation
+name: 检查接口二层端口隔离配置
+content: 在当前设备接口视图下执行 display this，按 current_hop.current_interface 判断是否存在 port-isolate enable 配置。若存在，则可确认端口隔离是 VLAN 内不互通的根因；若不存在，则继续检查终端静态 ARP。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 current_hop.current_interface 才能检查端口隔离配置。
+    condition: input.current_hop.current_interface != ''
+    on_fail:
+      action: skip
+      next_node: step_13_check_static_arp
+skills:
+- skill_id: skill_display_this
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要检查端口隔离配置的接口
+  selector: 聚焦接口 {{ input.current_hop.current_interface }} 的当前配置，并提取 port_isolate_enabled。
+  extraction_schema:
+  - name: port_isolate_enabled
+    type: boolean
+    description: 当前接口是否配置了 port-isolate enable
+transitions:
+  rules:
+  - description: 当前接口配置了二层端口隔离，可确认其为根因。
+    condition: extracted.port_isolate_enabled == true
+    next_node: CONCLUSION_PORT_ISOLATION_ENABLED
+  - description: 当前接口未配置二层端口隔离，继续检查终端静态 ARP。
+    condition: extracted.port_isolate_enabled == false
+    next_node: step_13_check_static_arp
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

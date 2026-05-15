@@ -1,0 +1,284 @@
+{
+  "generated_at": "2026-05-15T16:32:14",
+  "workflow_path": "workflows/vlan/workflow.yaml",
+  "steps_dir": "workflows/vlan/steps",
+  "step_file_count": 19,
+  "workflow_step_count": 19,
+  "issue_count": 23,
+  "critical_count": 23,
+  "warning_count": 0,
+  "info_count": 0,
+  "empty_condition_count": 0,
+  "legacy_state_ref_count": 0,
+  "placeholder_input_count": 0,
+  "true_condition_count": 0,
+  "blank_selector_count": 13,
+  "blank_selector_examples": [
+    "step_4_create_vlan.yaml#skills[0]",
+    "step_7_config_access_port_vlan.yaml#skills[0]",
+    "step_7_config_access_port_vlan.yaml#skills[1]",
+    "step_8_config_trunk_port_vlan.yaml#skills[0]",
+    "step_8_config_trunk_port_vlan.yaml#skills[1]",
+    "step_9_config_hybrid_port_vlan.yaml#skills[0]",
+    "step_9_config_hybrid_port_vlan.yaml#skills[1]",
+    "step_10a_config_interconnect_access_vlan.yaml#skills[0]"
+  ],
+  "files_with_issues": {
+    "step_0_check_interface_status.yaml": 5,
+    "step_10_check_interconnect_vlan_pass.yaml": 1,
+    "step_10a_config_interconnect_access_vlan.yaml": 1,
+    "step_10b_config_interconnect_trunk_vlan.yaml": 1,
+    "step_10c_config_interconnect_hybrid_vlan.yaml": 1,
+    "step_11_recheck_mac_address_table.yaml": 1,
+    "step_12_check_port_isolation.yaml": 1,
+    "step_13_check_static_arp.yaml": 1,
+    "step_15_check_lnp_interface_status.yaml": 1,
+    "step_16_check_lnp_link_type.yaml": 1,
+    "step_17_check_lnp_configuration.yaml": 1,
+    "step_18_check_ops_status.yaml": 1,
+    "step_2_check_mac_address_table.yaml": 1,
+    "step_3_check_vlan_created.yaml": 1,
+    "step_4_create_vlan.yaml": 1,
+    "step_5_check_interface_vlan_membership.yaml": 1,
+    "step_7_config_access_port_vlan.yaml": 1,
+    "step_8_config_trunk_port_vlan.yaml": 1,
+    "step_9_config_hybrid_port_vlan.yaml": 1
+  },
+  "issue_counter": {
+    "critical": 23,
+    "extraction_schema": 4,
+    "next_node": 19
+  },
+  "issues": [
+    {
+      "file": "step_0_check_interface_status.yaml",
+      "step_id": "step_0_check_interface_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: access_port",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_0_check_interface_status.yaml",
+      "step_id": "step_0_check_interface_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: interconnect_port",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_0_check_interface_status.yaml",
+      "step_id": "step_0_check_interface_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[2].condition",
+      "message": "condition 使用了未声明的 extracted 字段: access_port",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_0_check_interface_status.yaml",
+      "step_id": "step_0_check_interface_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[2].condition",
+      "message": "condition 使用了未声明的 extracted 字段: interconnect_port",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_0_check_interface_status.yaml",
+      "step_id": "step_0_check_interface_status",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_2_check_mac_address_table.yaml",
+      "step_id": "step_2_check_mac_address_table",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_3_check_vlan_created.yaml",
+      "step_id": "step_3_check_vlan_created",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_4_create_vlan.yaml",
+      "step_id": "step_4_create_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_5_check_interface_vlan_membership.yaml",
+      "step_id": "step_5_check_interface_vlan_membership",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_7_config_access_port_vlan.yaml",
+      "step_id": "step_7_config_access_port_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_8_config_trunk_port_vlan.yaml",
+      "step_id": "step_8_config_trunk_port_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_9_config_hybrid_port_vlan.yaml",
+      "step_id": "step_9_config_hybrid_port_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_10_check_interconnect_vlan_pass.yaml",
+      "step_id": "step_10_check_interconnect_vlan_pass",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_11_recheck_mac_address_table.yaml",
+      "step_id": "step_11_recheck_mac_address_table",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_12_check_port_isolation.yaml",
+      "step_id": "step_12_check_port_isolation",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_13_check_static_arp.yaml",
+      "step_id": "step_13_check_static_arp",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_15_check_lnp_interface_status.yaml",
+      "step_id": "step_15_check_lnp_interface_status",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_16_check_lnp_link_type.yaml",
+      "step_id": "step_16_check_lnp_link_type",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_17_check_lnp_configuration.yaml",
+      "step_id": "step_17_check_lnp_configuration",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_18_check_ops_status.yaml",
+      "step_id": "step_18_check_ops_status",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_10a_config_interconnect_access_vlan.yaml",
+      "step_id": "step_10a_config_interconnect_access_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_10b_config_interconnect_trunk_vlan.yaml",
+      "step_id": "step_10b_config_interconnect_trunk_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_10c_config_interconnect_hybrid_vlan.yaml",
+      "step_id": "step_10c_config_interconnect_hybrid_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+file,step_id,severity,category,path,line,message,recommendation
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: local_port_vlan,把该字段补入 extraction_schema，或修改 condition
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: peer_port_vlan,把该字段补入 extraction_schema，或修改 condition
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: local_port_vlan,把该字段补入 extraction_schema，或修改 condition
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: peer_port_vlan,把该字段补入 extraction_schema，或修改 condition
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,extraction_schema,transitions.rules[2].condition,,condition 使用了未声明的 extracted 字段: local_port_vlan,把该字段补入 extraction_schema，或修改 condition
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,extraction_schema,transitions.rules[2].condition,,condition 使用了未声明的 extracted 字段: peer_port_vlan,把该字段补入 extraction_schema，或修改 condition
+step_1_check_port_vlan.yaml,step_1_check_port_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_2_check_ip_interface.yaml,step_2_check_ip_interface,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: local_ip_interface_brief,把该字段补入 extraction_schema，或修改 condition
+step_2_check_ip_interface.yaml,step_2_check_ip_interface,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: peer_ip_interface_brief,把该字段补入 extraction_schema，或修改 condition
+step_2_check_ip_interface.yaml,step_2_check_ip_interface,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_3_check_physical_link.yaml,step_3_check_physical_link,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: local_eth_trunk,把该字段补入 extraction_schema，或修改 condition
+step_3_check_physical_link.yaml,step_3_check_physical_link,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: peer_eth_trunk,把该字段补入 extraction_schema，或修改 condition
+step_3_check_physical_link.yaml,step_3_check_physical_link,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: local_eth_trunk,把该字段补入 extraction_schema，或修改 condition
+step_3_check_physical_link.yaml,step_3_check_physical_link,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: peer_eth_trunk,把该字段补入 extraction_schema，或修改 condition
+step_3_check_physical_link.yaml,step_3_check_physical_link,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_4_check_vlanif_status.yaml,step_4_check_vlanif_status,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: current_port_interface_brief,把该字段补入 extraction_schema，或修改 condition
+step_4_check_vlanif_status.yaml,step_4_check_vlanif_status,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: vlanif_interface_brief,把该字段补入 extraction_schema，或修改 condition
+step_4_check_vlanif_status.yaml,step_4_check_vlanif_status,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: current_port_interface_brief,把该字段补入 extraction_schema，或修改 condition
+step_4_check_vlanif_status.yaml,step_4_check_vlanif_status,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: vlanif_interface_brief,把该字段补入 extraction_schema，或修改 condition
+step_4_check_vlanif_status.yaml,step_4_check_vlanif_status,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_5_check_layer2_blocking.yaml,step_5_check_layer2_blocking,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_6_check_direct_route.yaml,step_6_check_direct_route,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_7_check_policy_routing_applied.yaml,step_7_check_policy_routing_applied,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_8_check_traffic_behavior_redirect.yaml,step_8_check_traffic_behavior_redirect,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_9_check_classifier_acl.yaml,step_9_check_classifier_acl,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_10_check_redirect_acl_detail.yaml,step_10_check_redirect_acl_detail,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_11_check_arp_learning.yaml,step_11_check_arp_learning,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_12_check_mac_outbound.yaml,step_12_check_mac_outbound,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_13_check_cpu_defend_policy.yaml,step_13_check_cpu_defend_policy,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_14_check_cpu_defend_blacklist.yaml,step_14_check_cpu_defend_blacklist,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_15_check_blacklist_acl.yaml,step_15_check_blacklist_acl,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_16_check_icmp_statistics_local.yaml,step_16_check_icmp_statistics_local,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_17_check_icmp_statistics_peer.yaml,step_17_check_icmp_statistics_peer,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_18_check_icmp_cpcar_statistics.yaml,step_18_check_icmp_cpcar_statistics,critical,extraction_schema,transitions.rules[0].condition,52,condition 使用了未声明的 extracted 字段: cpcar_after,把该字段补入 extraction_schema，或修改 condition
+step_18_check_icmp_cpcar_statistics.yaml,step_18_check_icmp_cpcar_statistics,critical,extraction_schema,transitions.rules[0].condition,52,condition 使用了未声明的 extracted 字段: cpcar_before,把该字段补入 extraction_schema，或修改 condition
+step_18_check_icmp_cpcar_statistics.yaml,step_18_check_icmp_cpcar_statistics,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id

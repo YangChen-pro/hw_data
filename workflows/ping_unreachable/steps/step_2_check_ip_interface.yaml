@@ -1,0 +1,51 @@
+step_id: step_2_check_ip_interface
+name: 检查双端 VLANIF 接口地址配置
+content: 在本端设备和对端设备上分别执行 display ip interface brief，按 current_hop 中指定的 VLANIF 接口定位本端和对端的三层接口配置。其中
+  IP Address/Mask 表示接口的 IP 地址和掩码，用于判断两端指定 VLANIF 是否属于同一网段。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要同时具备本端和对端 VLANIF 锚点，否则当前 step 不适用。
+    condition: input.current_hop.vlanif_interface != '' and input.current_hop.peer_vlanif_interface
+      != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_ip_interface_brief
+  target_device: current_device
+  result_key: local_ip_interface_brief
+  inputs: {}
+  selector: 按 {{ input.current_hop.vlanif_interface }} 在 interface_table 中定位本端指定 VLANIF
+    接口，并仅提取该行的 interface 和 ip_address_mask。
+  extraction_schema:
+  - name: interface
+    type: string
+    description: 命中的本端 VLANIF 接口名
+  - name: ip_address_mask
+    type: string
+    description: 命中的本端 VLANIF 接口 IP 地址和掩码
+- skill_id: skill_display_ip_interface_brief
+  target_device: peer_device
+  result_key: peer_ip_interface_brief
+  inputs: {}
+  selector: 按 {{ input.current_hop.peer_vlanif_interface }} 在 interface_table 中定位对端指定
+    VLANIF 接口，并仅提取该行的 interface 和 ip_address_mask。
+  extraction_schema:
+  - name: interface
+    type: string
+    description: 命中的对端 VLANIF 接口名
+  - name: ip_address_mask
+    type: string
+    description: 命中的对端 VLANIF 接口 IP 地址和掩码
+transitions:
+  rules:
+  - description: 若两端指定 VLANIF 都已成功定位，但两端接口 IP 地址和掩码不属于同一网段，则说明 VLANIF 配置错误。
+    condition: extracted.local_ip_interface_brief.interface != '' and extracted.peer_ip_interface_brief.interface
+      != '' and extracted.local_ip_interface_brief.ip_address_mask != '' and extracted.peer_ip_interface_brief.ip_address_mask
+      != '' and not check_same_subnet(extracted.local_ip_interface_brief.ip_address_mask,
+      extracted.peer_ip_interface_brief.ip_address_mask)
+    next_node: CONCLUSION_IP_MISMATCH
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

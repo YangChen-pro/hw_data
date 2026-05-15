@@ -1,0 +1,41 @@
+---
+step_id: step_4_check_domain_config
+name: 检查认证域配置
+content: 进入 AAA 域视图执行 display this，检查域下是否配置了认证方案（authentication-scheme）和 RADIUS 服务器模板（radius-server）。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要接入域名称才能检查域配置。
+    condition: state.results.step_2_check_auth_profile.access_domain != ''
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_display_this_aaa_domain
+  target_device: current_device
+  inputs:
+    domain_name:
+      name: domain_name
+      source_type: step_output
+      source_key: state.results.step_2_check_auth_profile.access_domain
+      description: 需要检查的认证域名称
+  selector: null
+  extraction_schema:
+  - name: authentication_scheme
+    type: string
+    description: 域下配置的认证方案名称
+  - name: radius_server_template
+    type: string
+    description: 域下绑定的 RADIUS 服务器模板名称
+  - name: accounting_scheme
+    type: string
+    description: 域下配置的计费方案名称
+transitions:
+  rules:
+  - description: 域下未配置认证方案或未绑定 RADIUS 服务器模板。
+    condition: extracted.authentication_scheme == '' or extracted.radius_server_template == ''
+    next_node: CONCLUSION_DOMAIN_CONFIG_MISSING
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -1,0 +1,52 @@
+---
+step_id: step_12_check_portal_server_template
+name: 检查 Portal 服务器模板配置
+content: 进入 Portal 服务器模板视图执行 display this，检查 server-ip、URL 配置和 server-detect 探测功能是否开启。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 Portal 服务器模板名称才能进入模板视图检查配置。
+    condition: input.current_hop.portal_server_template != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_this_web_auth_server
+  target_device: current_device
+  inputs:
+    portal_server_template:
+      name: portal_server_template
+      source_type: workflow_input
+      source_key: input.current_hop.portal_server_template
+      description: 需要检查配置的 Portal 服务器模板名称
+  selector: null
+  extraction_schema:
+  - name: server_ip
+    type: string
+    description: Portal 服务器 IP 地址
+  - name: url
+    type: string
+    description: Portal 页面 URL
+  - name: server_detect_enabled
+    type: boolean
+    description: 是否开启了 server-detect 探测功能
+  - name: shared_key_configured
+    type: boolean
+    description: 是否配置了共享密钥
+transitions:
+  rules:
+  - description: Portal 服务器模板未配置服务器 IP 地址，Portal 协议报文无法发送。
+    condition: extracted.server_ip == ''
+    next_node: CONCLUSION_PORTAL_SERVER_IP_MISSING
+  - description: Portal 服务器模板未配置 URL，终端无法被重定向到 Portal 页面。
+    condition: extracted.url == ''
+    next_node: CONCLUSION_PORTAL_URL_MISSING
+  - description: Portal 服务器模板未配置共享密钥，Portal v2/v3 协议报文校验将失败。
+    condition: extracted.shared_key_configured == false
+    next_node: CONCLUSION_PORTAL_SHARED_KEY_MISSING
+  - description: 开启了 server-detect 探测功能，如果 Portal 服务器未配合可能导致重定向失败。
+    condition: extracted.server_detect_enabled == true
+    next_node: CONCLUSION_PORTAL_SERVER_DETECT_ENABLED
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

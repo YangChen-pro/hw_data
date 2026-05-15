@@ -1,0 +1,32 @@
+---
+step_id: step_4_create_vlan
+name: 创建业务 VLAN
+content: 若业务 VLAN 尚未创建，则在当前设备上执行 vlan 命令创建对应 VLAN，完成后继续检查接口成员关系。
+type: configuration
+preconditions:
+  rules:
+  - description: 创建 VLAN 前需要 current_hop.vlan_id。
+    condition: input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_vlan
+  target_device: current_device
+  inputs:
+    vlan_id:
+      name: vlan_id
+      source_type: workflow_input
+      source_key: input.current_hop.vlan_id
+      description: 需要创建的 VLAN ID
+  selector: null
+  extraction_schema: []
+transitions:
+  rules:
+  - description: VLAN 创建动作完成后，继续检查接口是否已加入该 VLAN。
+    condition: True
+    next_node: step_5_check_interface_vlan_membership
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

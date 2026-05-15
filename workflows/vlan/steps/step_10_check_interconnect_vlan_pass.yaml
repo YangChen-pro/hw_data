@@ -1,0 +1,56 @@
+---
+step_id: step_10_check_interconnect_vlan_pass
+name: 检查互联侧端口是否放行业务 VLAN
+content: 若已提供当前设备的互联侧端口，则在当前设备执行 display port vlan，按 current_hop.interconnect_interface 判断业务 VLAN 是否已在该端口正常通过；若未提供互联侧端口锚点，则直接进入 MAC 表复核。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 仅在已给出 interconnect_interface 且具备 vlan_id 时检查互联侧端口 VLAN 放行；否则跳过到 MAC 复核。
+    condition: input.current_hop.interconnect_interface != '' and input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: step_11_recheck_mac_address_table
+skills:
+- skill_id: skill_display_port_vlan
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.interconnect_interface
+      description: 需要检查 VLAN 放行情况的互联侧端口
+  selector: 按 {{ input.current_hop.interconnect_interface }} 在 port_vlan_table 中定位互联侧端口对应行，并结合目标 VLAN {{ input.current_hop.vlan_id }} 判断 target_vlan_allowed。
+  extraction_schema:
+  - name: link_type
+    type: string
+    description: 互联侧端口链路类型
+  - name: pvid
+    type: integer
+    description: 互联侧端口 PVID
+  - name: trunk_vlan_list
+    type: string
+    description: 互联侧端口允许通过的 VLAN 列表
+  - name: target_vlan_allowed
+    type: boolean
+    description: 目标 VLAN 是否允许在互联侧端口正常通过
+transitions:
+  rules:
+  - description: 互联侧端口已正确放行业务 VLAN，继续重新检查 MAC 地址表项。
+    condition: extracted.target_vlan_allowed == true
+    next_node: step_11_recheck_mac_address_table
+  - description: 互联侧端口为 Access 类型且未放行业务 VLAN，进入互联侧端口 Access 配置。
+    condition: extracted.target_vlan_allowed == false and extracted.link_type == 'access'
+    next_node: step_10a_config_interconnect_access_vlan
+  - description: 互联侧端口为 Trunk 类型且未放行业务 VLAN，进入互联侧端口 Trunk 配置。
+    condition: extracted.target_vlan_allowed == false and extracted.link_type == 'trunk'
+    next_node: step_10b_config_interconnect_trunk_vlan
+  - description: 互联侧端口为 Hybrid 类型且未放行业务 VLAN，进入互联侧端口 Hybrid 配置。
+    condition: extracted.target_vlan_allowed == false and extracted.link_type == 'hybrid'
+    next_node: step_10c_config_interconnect_hybrid_vlan
+  - description: 互联侧端口 VLAN 未放通，但链路类型不在已建模范围内，转人工核查。
+    condition: extracted.target_vlan_allowed == false and extracted.link_type != 'access' and extracted.link_type != 'trunk' and extracted.link_type != 'hybrid'
+    next_node: CONCLUSION_MANUAL_CHECK
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

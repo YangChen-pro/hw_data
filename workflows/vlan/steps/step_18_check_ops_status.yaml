@@ -1,0 +1,26 @@
+---
+step_id: step_18_check_ops_status
+name: 检查 OPS 脚本状态
+content: 在当前设备执行 display ops assistant verbose default，检查是否存在 _lnp_port_linktype_change.py 脚本，且其 State 是否为 ready。若脚本不存在或状态异常，则直接输出升级结论。
+type: diagnosis
+skills:
+- skill_id: skill_display_ops_assistant_verbose_default
+  target_device: current_device
+  inputs: {}
+  selector: 在 OPS 脚本列表中定位 _lnp_port_linktype_change.py，并提取 lnp_script_present 与 state。
+  extraction_schema:
+  - name: lnp_script_present
+    type: boolean
+    description: 是否存在 _lnp_port_linktype_change.py 脚本
+  - name: state
+    type: string
+    description: 该脚本的运行状态，如 ready
+transitions:
+  rules:
+  - description: OPS 脚本不存在或状态不是 ready，直接输出升级结论。
+    condition: extracted.lnp_script_present == false or extracted.state != 'ready'
+    next_node: CONCLUSION_LNP_ESCALATE_WITH_DEVICE_INFO
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

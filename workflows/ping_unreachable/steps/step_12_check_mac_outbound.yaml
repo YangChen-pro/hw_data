@@ -1,23 +1,31 @@
+---
 step_id: step_12_check_mac_outbound
-name: "检查MAC地址出接口与ARP物理出接口是否一致"
-content: "ARP学习正确后，执行display mac-address命令查看MAC表项，确认MAC地址的出接口（Learned-From字段）与ARP表中的物理出接口（INTERFACE字段）是否一致。若不一致，排查是否存在环路或MAC冲突。"
+name: 检查本端 MAC 出接口与 ARP 接口一致性
+content: ARP 学习正确后，执行 display mac-address 查看 MAC 表项，自动比对 MAC 地址出接口（Learned-From）与 ARP 表项接口（INTERFACE）是否一致。若不一致，排查是否存在环路或 MAC 冲突。
 type: diagnosis
 skills:
-  - skill_id: "display mac-address"
-    inputs:
-      mac_address: "来自step_11提取的MAC_ADDRESS字段值"
-    selector:
-    extraction_schema:
-      - name: Learned-From
-        description: "MAC地址表中该MAC地址对应的出接口，需与ARP表中INTERFACE字段进行人工比对，判断是否一致"
-        type: string
+- skill_id: skill_display_mac_address
+  target_device: current_device
+  inputs:
+    mac_address:
+      name: mac_address
+      source_type: step_output
+      source_key: state.results.step_11_check_arp_learning.mac_address
+      description: 引用上一步已学习到的对端 MAC 地址
+  selector: 按 {{ state.results.step_11_check_arp_learning.mac_address }} 在 mac_address_table 中定位对应的 MAC 表项，并提取 learned_from。
+  extraction_schema:
+  - name: learned_from
+    type: string
+    description: MAC地址表中该MAC地址对应的出接口（Learned-From）
 transitions:
   rules:
-    - description: "获取到MAC地址出接口，需人工比对ARP与MAC出接口是否一致"
-      condition: ""
-      next_node: CONCLUSION_ARP_MAC_CHECK
+  - description: ARP接口或MAC出接口缺失，无法完成自动比对
+    condition: state.results.step_11_check_arp_learning.interface == '' or extracted.learned_from == ''
+    next_node: CONCLUSION_ARP_MAC_INTERFACE_MISSING
+  - description: ARP接口与MAC出接口不一致，存在二层转发表异常风险
+    condition: state.results.step_11_check_arp_learning.interface != '' and extracted.learned_from != '' and extracted.learned_from != state.results.step_11_check_arp_learning.interface
+    next_node: CONCLUSION_ARP_MAC_INTERFACE_MISMATCH
   on_error:
-    handler_execution_failed: CONCLUSION_MANUAL_CHECK
-    cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
-    parse_failure: CONCLUSION_MANUAL_CHECK
-  default: CONCLUSION_MANUAL_CHECK
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

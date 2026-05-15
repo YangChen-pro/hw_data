@@ -1,188 +1,215 @@
+---
 workflow_id: wf_check_ping_command
-name: "Ping不通故障定位-检查Ping命令是否合理"
-version: "1.0"
+name: Ping不通故障定位
+version: '1.0'
 input_schema:
+- name: facts
+  type: object
+  required: false
+  description: 整个链路上面通用的事实（通常是用户输入）。
+  properties: []
+- name: current_hop
+  type: object
+  required: true
+  description: 当前正在检查的单个直连 hop，仅表达本跳的设备、接口和已知转发事实。
+  properties:
+  - name: hop_index
+    type: integer
+    required: true
+    description: 当前正在检查的第几跳，用于让上层编排记录 hop 顺序。
+  - name: current_device
+    type: string
+    required: true
+    description: 当前 hop 的本端设备管理 IP。
+  - name: peer_device
+    type: string
+    required: true
+    description: 当前 hop 的对端设备管理 IP。
+  - name: path_state
+    type: string
+    required: true
+    description: 当前 hop 的拓扑解析状态，建议取值 resolved、partial、failed。
+  - name: forwarding_mode
+    type: string
+    required: false
+    description: 当前 hop 的预判转发模式，建议取值 l2 或 l3。
+  - name: current_interface
+    type: string
+    required: false
+    description: 当前 hop 的本端直连接口。
+  - name: peer_interface
+    type: string
+    required: false
+    description: 当前 hop 的对端直连接口。
+  - name: vlan_id
+    type: integer
+    required: false
+    description: 当前 hop 关联的 VLAN ID。
+  - name: mac_out_interface
+    type: string
+    required: false
+    description: 本端 MAC 表学习到的出接口。
+  - name: eth_trunk_id
+    type: string
+    required: false
+    description: 若当前 hop 经过 Eth-Trunk，可选填对应 Trunk ID。
+  - name: route_out_interface
+    type: string
+    required: false
+    description: 本端到当前 hop 对端三层邻接的三层出接口。
+  - name: vlanif_interface
+    type: string
+    required: false
+    description: 当前 hop 本端用于三层接口精确比对的 VLANIF 接口名。
+  - name: peer_vlanif_interface
+    type: string
+    required: false
+    description: 当前 hop 对端用于三层接口精确比对的 VLANIF 接口名。
+  - name: next_hop_ip
+    type: string
+    required: false
+    description: 当前 hop 做三层检查时使用的对端邻接 IP。
+  - name: arp_mac
+    type: string
+    required: false
+    description: 针对 next_hop_ip 学到的 MAC 地址，已知时可作为 ARP 或 MAC 一致性校验辅助信息。
 start_node:
-  - step_0_check_ping_command
-  - step_2_check_port_vlan
-  - step_4_check_physical_link
-  - step_7_check_direct_route
-  - step_11_check_arp_learning
-  - step_19_check_cpu_defend_policy
-  - step_22_check_icmp_statistics_switcha
-  - step_29_check_icmp_cpcar_statistics
-  - step_31_check_packet_format
-  - step_35_collect_log_info
+- step_id: step_1_check_port_vlan
+  description: 二层接口 VLAN 配置与 VLANIF 地址一致性检查
+- step_id: step_3_check_physical_link
+  description: 物理链路完整性、接口状态与二层协议阻塞检查
+- step_id: step_6_check_direct_route
+  description: 直连路由可达性与策略路由重定向检查
+- step_id: step_11_check_arp_learning
+  description: ARP 学习状态与 MAC 出接口一致性检查
+- step_id: step_13_check_cpu_defend_policy
+  description: CPU 防攻击黑名单配置检查
+- step_id: step_16_check_icmp_statistics_local
+  description: ICMP 报文收发统计定位丢弃位置
+- step_id: step_18_check_icmp_cpcar_statistics
+  description: ICMP 报文 CPCAR 限速丢包检查
 steps:
-  - step_0_check_ping_command
-  - step_1_check_mtu
-  - step_2_check_port_vlan
-  - step_3_check_ip_interface
-  - step_4_check_physical_link
-  - step_5_check_vlanif_status
-  - step_6_check_layer2_blocking
-  - step_7_check_direct_route
-  - step_8_check_policy_routing_applied
-  - step_9_check_traffic_behavior_redirect
-  - step_10_check_classifier_acl
-  - step_11_check_arp_learning
-  - step_12_check_mac_outbound
-  - step_13_check_arp_miss_overload
-  - step_14_check_arp_request_link_drop
-  - step_15_check_switchb_cpcar_drop
-  - step_16_check_arp_response_link_drop
-  - step_17_check_switcha_cpcar_drop
-  - step_18_check_switcha_arp_module_error
-  - step_19_check_cpu_defend_policy
-  - step_20_check_cpu_defend_blacklist
-  - step_21_check_blacklist_acl
-  - step_22_check_icmp_statistics_switcha
-  - step_23_check_icmp_statistics_switchb
-  - step_24_configure_inbound_traffic_statistics
-  - step_25_configure_outbound_traffic_statistics
-  - step_26_reset_traffic_statistics
-  - step_27_check_switcha_outbound_statistics
-  - step_28_check_switchb_inbound_statistics
-  - step_29_check_icmp_cpcar_statistics
-  - step_30_configure_icmp_cpcar_value
-  - step_31_check_packet_format
-  - step_32_configure_port_mirroring
-  - step_33_configure_flow_mirroring
-  - step_34_capture_packet_format
-  - step_35_collect_log_info
-  - step_36_save_log_files
+- step_1_check_port_vlan
+- step_2_check_ip_interface
+- step_3_check_physical_link
+- step_4_check_vlanif_status
+- step_5_check_layer2_blocking
+- step_6_check_direct_route
+- step_7_check_policy_routing_applied
+- step_8_check_traffic_behavior_redirect
+- step_9_check_classifier_acl
+- step_10_check_redirect_acl_detail
+- step_11_check_arp_learning
+- step_12_check_mac_outbound
+- step_13_check_cpu_defend_policy
+- step_14_check_cpu_defend_blacklist
+- step_15_check_blacklist_acl
+- step_16_check_icmp_statistics_local
+- step_17_check_icmp_statistics_peer
+- step_18_check_icmp_cpcar_statistics
 conclusions:
-  CONCLUSION_MANUAL_CHECK:
+  CONCLUSION_HANDLER_EXECUTION_FAILED:
     level: warning
-    message: "需要人工检查"
-    suggestion: "请联系技术支持进行进一步排查"
-  CONCLUSION_COMMAND_REASONABLE:
-    level: info
-    message: "Ping命令未使用-f参数，命令参数合理，非分片问题导致Ping不通"
-    suggestion: "请继续排查其他可能原因"
-  CONCLUSION_MTU_TOO_SMALL:
+    message: 工作流处理器执行失败
+    suggestion: 请检查 workflow 引擎运行状态、step 编排配置和执行上下文，然后重试
+    repair_action: 
+  CONCLUSION_CLI_COMMAND_EXECUTION_FAILED:
+    level: warning
+    message: 设备命令执行失败
+    suggestion: 请检查设备连通性、认证权限、命令可用性与执行超时情况，然后重试
+    repair_action: 
+  CONCLUSION_PARSE_FAILURE:
+    level: warning
+    message: 命令回显解析失败
+    suggestion: 请检查命令回显格式是否变化、解析 schema/selector 是否匹配，并修正后重试
+    repair_action: 
+  CONCLUSION_PORT_LINK_TYPE_MISMATCH:
     level: error
-    message: "接口MTU值小于ICMP报文长度，ICMP报文在发送过程中被丢弃，导致Ping不通"
-    suggestion: "可通过不使用-f参数或增大链路MTU值的方式解决"
-    repair_action: "方式一：重新执行Ping命令时去掉-f参数；方式二：进入接口视图执行mtu命令增大接口MTU值（如mtu 1600）"
-  CONCLUSION_PORT_VLAN_MISMATCH:
+    message: 两端接口链路类型配置不一致，导致Ping不通
+    suggestion: 检查两端接口的链路类型（Access、Trunk、Hybrid）是否符合当前 hop 的组网方式，并确保两端配置一致
+    repair_action: 进入接口视图，根据实际组网需求修改接口链路类型，使两端接口类型保持一致
+  CONCLUSION_PORT_ALLOWED_VLAN_MISMATCH:
     level: error
-    message: "接口链路类型或VLAN配置不一致，导致Ping不通"
-    suggestion: "检查两端接口的链路类型（Access/Trunk）、PVID及允许通过的VLAN列表，确保配置一致"
-    repair_action: "进入接口视图，根据实际组网需求修改接口类型和VLAN配置，使两端保持一致"
+    message: 两端接口允许通过的VLAN配置不一致，导致Ping不通
+    suggestion: 检查两端接口的 PVID 及允许通过的 VLAN 列表，确保当前 hop 所需 VLAN 在两端配置一致
+    repair_action: 进入接口视图，根据实际组网需求调整允许通过的 VLAN 和缺省 VLAN 配置，使两端接口的 VLAN 配置保持一致
   CONCLUSION_IP_MISMATCH:
     level: error
-    message: "两端VLANIF接口IP地址不在同一网段，无法直接通信，导致Ping不通"
-    suggestion: "检查两端VLANIF接口的IP地址和子网掩码，确认是否属于同一网段"
-    repair_action: "进入VLANIF接口视图，执行ip address命令修改IP地址，使两端处于同一网段"
-  CONCLUSION_CONFIG_CORRECT:
-    level: info
-    message: "接口VLAN配置和IP地址配置均正确，非配置问题导致Ping不通"
-    suggestion: "请继续排查其他可能原因，如路由配置、ACL策略等"
+    message: 两端VLANIF接口IP地址不在同一网段，无法直接通信，导致Ping不通
+    suggestion: 检查两端VLANIF接口的IP地址和子网掩码，确认是否属于同一网段
+    repair_action: 进入VLANIF接口视图，执行ip address命令修改IP地址，使两端处于同一网段
   CONCLUSION_PHYSICAL_LINK_FAULT:
     level: error
-    message: "物理链路存在故障，Eth-Trunk成员链路状态异常，导致Ping不通"
-    suggestion: "检查Eth-Trunk成员接口的物理连接和配置，确保链路正常"
-    repair_action: "检查Eth-Trunk成员接口的物理线缆连接，排查接口协议Down的原因；在接口视图下执行undo shutdown命令尝试恢复接口"
+    message: Eth-Trunk 成员链路数量或状态异常，导致当前 hop 转发失败，Ping 不通
+    suggestion: 检查两端 Eth-Trunk 成员接口总数与 Up 成员数是否一致，确认成员口配置与链路状态匹配
+    repair_action: 在接口视图检查并修复异常成员口配置或链路状态，确保两端 Eth-Trunk 成员总数一致且至少有一条成员链路为 Up
   CONCLUSION_INTERFACE_DOWN:
     level: error
-    message: "VLANIF接口或物理接口为Down状态，导致Ping不通"
-    suggestion: "检查该VLAN下是否有成员接口Up，以及物理接口是否正常连接"
-    repair_action: "检查物理接口连接状态，在接口视图下执行undo shutdown命令使能接口；确认接口已加入正确VLAN"
+    message: VLANIF接口或物理接口为Down状态，导致Ping不通
+    suggestion: 检查该VLAN下是否有成员接口Up，以及物理接口是否正常连接
+    repair_action: 检查物理接口连接状态，在接口视图下执行undo shutdown命令使能接口；确认接口已加入正确VLAN
   CONCLUSION_PORT_BLOCKED:
     level: error
-    message: "接口被STP/RRPP/Smart Link等二层协议阻塞，导致Ping不通"
-    suggestion: "检查STP（DISCARDING状态）、RRPP（BLOCKED状态）或Smart Link（Inactive状态）的配置，确认接口阻塞是否合理"
-    repair_action: "根据实际网络拓扑调整STP优先级或RRPP/Smart Link配置，解除不合理的接口阻塞"
-  CONCLUSION_PHYSICAL_LINK_OK:
-    level: info
-    message: "物理链路检查正常，接口状态Up且无二层协议阻塞"
-    suggestion: "请继续排查其他可能原因，如路由配置、ACL策略等"
+    message: 接口被STP/RRPP/Smart Link等二层协议阻塞，导致Ping不通
+    suggestion: 检查STP（DISCARDING状态）、RRPP（BLOCKED状态）或Smart Link（Inactive状态）的配置，确认接口阻塞是否合理
+    repair_action: 根据实际网络拓扑调整STP优先级或RRPP/Smart Link配置，解除不合理的接口阻塞
   CONCLUSION_NO_ROUTE:
     level: error
-    message: "路由表中无对应目的地址的路由条目，报文无法转发，导致Ping不通"
-    suggestion: "检查路由协议配置是否正确，确认源端设备是否配置了正确的网关地址或到对端的回程路由"
+    message: 路由表中无对应目的地址的路由条目，报文无法转发，导致Ping不通
+    suggestion: 检查路由协议配置是否正确，确认源端设备是否配置了正确的网关地址或到对端的回程路由
+    repair_action: 
   CONCLUSION_ROUTE_NOT_DIRECT:
     level: error
-    message: "到目的地址的路由为非直连路由，可能因最长匹配原则导致报文无法从直连接口转发"
-    suggestion: "检查路由表中是否存在掩码更长的非直连路由覆盖了直连路由，排查路由故障原因"
-  CONCLUSION_ROUTE_OK:
-    level: info
-    message: "路由检查正常，直连路由存在且无策略路由重定向问题"
-    suggestion: "请继续排查其他可能原因，如ACL策略、防火墙配置等"
+    message: 到目的地址的路由为非直连路由，可能因最长匹配原则导致报文无法从直连接口转发
+    suggestion: 检查路由表中是否存在掩码更长的非直连路由覆盖了直连路由，排查路由故障原因
+    repair_action: 
   CONCLUSION_POLICY_ROUTE_REDIRECT:
     level: error
-    message: "策略路由（流策略）将流量重定向到了错误的下一跳，导致Ping不通"
-    suggestion: "检查流策略中流行为的Redirect配置，确认重定向目的地址是否正确"
-    repair_action: "新建ACL匹配正常流量，新建流行为（动作为permit），在接口下取消原流策略绑定，重新调整流分类绑定顺序（先绑定正常流量的流分类和permit行为，再绑定重定向流分类），最后重新在接口调用流策略"
+    message: 策略路由（流策略）将流量重定向到了错误的下一跳，导致Ping不通
+    suggestion: 检查流策略中流行为的Redirect配置，确认重定向目的地址是否正确
+    repair_action: 新建ACL匹配正常流量，新建流行为（动作为permit），在接口下取消原流策略绑定，重新调整流分类绑定顺序（先绑定正常流量的流分类和permit行为，再绑定重定向流分类），最后重新在接口调用流策略
   CONCLUSION_ARP_NOT_LEARNED:
     level: error
-    message: "ARP学习失败，直连地址的MAC地址尚未学习到（显示为Incomplete或无表项），导致Ping不通"
-    suggestion: "ARP学习失败原因未能自动定位，请人工排查ARP请求/应答报文的收发情况"
-  CONCLUSION_ARP_MAC_CHECK:
-    level: info
-    message: "ARP学习正确，已获取到目的MAC地址，请人工确认MAC地址表中出接口与ARP物理出接口是否一致"
-    suggestion: "比较display arp all中的INTERFACE字段与display mac-address中的Learned-From字段，若不一致则排查是否存在环路或MAC地址冲突"
-  CONCLUSION_ARP_MISS_OVERLOAD:
+    message: ARP学习失败，直连地址的MAC地址尚未学习到（显示为Incomplete或无表项），导致Ping不通
+    suggestion: 建议切换到 arp_learning_failure workflow 继续执行ARP学习失败专项排查，定位请求/应答在哪一段被丢弃或处理异常
+    repair_action: 
+  CONCLUSION_ARP_MAC_INTERFACE_MISSING:
+    level: warning
+    message: ARP或MAC表项缺少接口字段，无法完成ARP接口与MAC出接口一致性校验
+    suggestion: 检查display arp与display mac-address输出是否完整，确认目的IP对应ARP表项和目的MAC对应MAC表项均存在且接口字段可识别
+    repair_action: 补齐相关表项后重试；若持续缺失，请人工排查命令输出与解析模板
+  CONCLUSION_ARP_MAC_INTERFACE_MISMATCH:
     level: error
-    message: "ARP Miss消息过多或终结子接口未使能arp broadcast enable，导致ARP请求报文未能发出，ARP学习失败"
-    suggestion: "检查SwitchA的ARP Miss统计，若消息过多可调整ARP Miss限速参数；若使用终结子接口，确认是否缺少arp broadcast enable配置"
-    repair_action: "终结子接口场景：进入子接口视图执行arp broadcast enable命令使能ARP广播报文转发"
-  CONCLUSION_ARP_REQUEST_LINK_DROP:
-    level: error
-    message: "链路中设备的访问控制策略丢弃了ARP请求报文，SwitchB未收到ARP请求，导致ARP学习失败"
-    suggestion: "检查SwitchA到SwitchB路径上各设备的ACL或防火墙策略，确认是否存在丢弃ARP广播报文的规则"
-    repair_action: "修改或删除路径上阻止ARP请求报文转发的访问控制策略"
-  CONCLUSION_SWITCHB_CPCAR_DROP:
-    level: error
-    message: "SwitchB的ARP相关CPCAR限速导致ARP请求报文在CPU处理时被丢弃，ARP学习失败"
-    suggestion: "在SwitchB上检查ARP CPCAR限速配置，确认限速阈值是否过小导致正常ARP报文被丢弃"
-    repair_action: "调整SwitchB上ARP相关CPCAR的限速参数，适当放宽ARP报文上送CPU的速率限制"
-  CONCLUSION_ARP_RESPONSE_LINK_DROP:
-    level: error
-    message: "链路中设备的访问控制策略丢弃了ARP应答报文，SwitchA未收到ARP应答，导致ARP学习失败"
-    suggestion: "检查SwitchB到SwitchA路径上各设备的ACL或防火墙策略，确认是否存在丢弃ARP单播应答报文的规则"
-    repair_action: "修改或删除路径上阻止ARP应答报文转发的访问控制策略"
-  CONCLUSION_SWITCHA_CPCAR_DROP:
-    level: error
-    message: "SwitchA的ARP相关CPCAR限速导致ARP应答报文在CPU处理时被丢弃，无法完成ARP学习"
-    suggestion: "在SwitchA上检查ARP CPCAR限速配置，确认限速阈值是否过小导致正常ARP应答报文被丢弃"
-    repair_action: "调整SwitchA上ARP相关CPCAR的限速参数，适当放宽ARP报文上送CPU的速率限制"
-  CONCLUSION_SWITCHA_ARP_MODULE_ERROR:
-    level: error
-    message: "SwitchA的ARP模块异常，即使收到ARP应答报文也无法完成ARP学习，导致Ping不通"
-    suggestion: "检查SwitchA的ARP模块运行状态，可尝试重置ARP相关配置或联系技术支持"
-    repair_action: "尝试在SwitchA上重置ARP相关配置；若仍无法恢复请联系华为技术支持"
+    message: ARP表项接口与MAC地址表Learned-From接口不一致，当前hop存在二层转发路径异常风险
+    suggestion: 排查是否存在环路、MAC漂移、错误VLAN或MAC冲突，确认流量实际入/出接口与直连拓扑一致
+    repair_action: 修正异常二层拓扑或冲突MAC来源，确保ARP对应接口与MAC表学习出接口一致
   CONCLUSION_BLACKLIST_CONFIGURED:
     level: error
-    message: "SwitchA上cpu-defend黑名单中存在SwitchB的IP地址，导致ARP应答报文被CPU丢弃，Ping不通"
-    suggestion: "删除cpu-defend黑名单中对应IP条目，或调整cpu-defend策略使其不影响正常ARP报文处理"
-    repair_action: "在SwitchA上进入cpu-defend policy视图（cpu-defend policy {策略名}），执行undo blacklist {序号}命令取消黑名单配置；或修改黑名单关联的ACL规则，确保报文可被正常处理"
+    message: 本端设备的 cpu-defend 黑名单中存在当前 hop 对端设备的 IP 地址，导致 ARP 应答报文被 CPU 丢弃，Ping 不通
+    suggestion: 删除cpu-defend黑名单中对应IP条目，或调整cpu-defend策略使其不影响正常ARP报文处理
+    repair_action: 在本端设备上进入 cpu-defend policy 视图（cpu-defend policy {策略名}），执行 undo blacklist {序号} 取消黑名单配置；或修改关联 ACL 规则，确保当前 hop 对端报文可被正常处理
   CONCLUSION_ICMP_BAD_CHECKSUM:
     level: error
-    message: "ICMP报文校验和错误（Bad checksum计数增加），报文在传输过程中数据损坏，导致Ping不通"
-    suggestion: "检查链路质量，排查可能导致报文损坏的物理层或链路层问题，如光模块故障、线缆损坏等"
-    repair_action: "更换或检修存在问题的物理链路；若问题持续，收集诊断信息并联系技术支持"
+    message: ICMP报文校验和错误（Bad checksum计数增加），报文在传输过程中数据损坏，导致Ping不通
+    suggestion: 检查链路质量，排查可能导致报文损坏的物理层或链路层问题，如光模块故障、线缆损坏等
+    repair_action: 更换或检修存在问题的物理链路；若问题持续，收集诊断信息并联系技术支持
   CONCLUSION_LINK_DROP:
     level: error
-    message: "ICMP报文在传输链路上被丢弃，华为交换机收发统计正常，丢包发生在链路传输过程中"
-    suggestion: "更换传输链路后重新进行Ping测试，确认链路质量"
-    repair_action: "更换存在问题的传输链路；若无法立即更换，可检查链路光模块、线缆及中间设备的物理状态"
-  CONCLUSION_PACKET_DROPPED_ON_SWITCHB:
+    message: ICMP 报文在当前 hop 直连链路上传输时被丢弃，导致 Ping 不通
+    suggestion: 检查当前 hop 的物理链路、光模块、线缆和接口误码情况，并在必要时更换链路后重新进行 Ping 测试
+    repair_action: 更换当前 hop 的异常传输链路；若无法立即更换，可重点检查该 hop 两端接口、光模块和线缆状态
+  CONCLUSION_PACKET_DROPPED_ON_PEER:
     level: error
-    message: "ICMP报文在SwitchB内部入方向处理时被丢弃，SwitchA出方向与SwitchB入方向报文数一致，丢包发生在SwitchB设备内部"
-    suggestion: "报文在华为交换机内被丢弃，可进入下一步排查或联系技术支持人员处理"
-    repair_action: "收集SwitchB的诊断信息，检查是否存在ACL、QoS策略或协议栈异常导致入方向报文被丢弃；若无法自行定位，请联系华为技术支持"
+    message: ICMP 报文在对端设备入方向处理时被丢弃，本端设备出方向与对端设备入方向报文统计定位表明问题位于对端设备内部
+    suggestion: 收集对端设备的诊断信息，检查是否存在 ACL、QoS 策略或协议栈异常导致入方向报文被丢弃
+    repair_action: 检查对端设备上的 ACL、QoS 与协议栈状态；若仍无法定位，请联系华为技术支持
+  CONCLUSION_CHECK_PACKET_TX_RX:
+    level: warning
+    message: 当前 hop 需要进一步判断报文收发情况
+    suggestion: 建议对当前 hop 继续做报文收发观测（如接口入/出方向流量统计或抓包），持续发起 Ping 后对比两端收发计数，定位报文在哪一侧或哪一段丢失
+    repair_action: 
   CONCLUSION_ICMP_CPCAR_DROP:
     level: error
-    message: "ICMP报文因CPCAR限速被丢弃，Drop(Packets)计数持续增加，导致Ping不通"
-    suggestion: "已适当增加ICMP CPCAR的CAR值，建议重新进行Ping测试验证问题是否解决，验证后恢复原CAR值"
-    repair_action: "在cpu-defend policy视图下执行car packet-type icmp cir命令调大ICMP限速值，并通过cpu-defend-policy global全局生效；验证Ping恢复后，建议逐步还原为原始CAR值以保障安全"
-  CONCLUSION_PACKET_FORMAT_MANUAL_CHECK:
-    level: warning
-    message: "ICMP报文格式检查需要通过端口镜像、流镜像或capture-packet命令抓包后手动分析，无法自动判断结论"
-    suggestion: "请手动检查抓取的ICMP报文：①VLAN标签是否与配置一致；②目的MAC是否为设备系统MAC；③IP报文头校验和是否正确；④ICMP校验和是否正确。若存在异常，需联系发端设备厂商处理"
-  CONCLUSION_CONTACT_SUPPORT:
-    level: warning
-    message: "经过所有自动化排查步骤均未能定位到具体故障原因，已收集日志、诊断日志及各步骤执行结果"
-    suggestion: "请将收集到的日志文件（logfile目录）、诊断日志（diag-logfile）及各排查步骤的输出信息提供给华为技术支持人员，联系华为技术支持获取进一步协助"
+    message: ICMP报文因CPCAR限速被丢弃，Drop(Packets)计数持续增加，导致Ping不通
+    suggestion: 已适当增加ICMP CPCAR的CAR值，建议重新进行Ping测试验证问题是否解决，验证后恢复原CAR值
+    repair_action: 在cpu-defend policy视图下执行car packet-type icmp cir命令调大ICMP限速值，并通过cpu-defend-policy global全局生效；验证Ping恢复后，建议逐步还原为原始CAR值以保障安全

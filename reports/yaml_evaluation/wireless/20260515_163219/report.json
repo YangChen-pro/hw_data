@@ -1,0 +1,199 @@
+{
+  "generated_at": "2026-05-15T16:32:19",
+  "workflow_path": "workflows/wireless/workflow.yaml",
+  "steps_dir": "workflows/wireless/steps",
+  "step_file_count": 15,
+  "workflow_step_count": 15,
+  "issue_count": 15,
+  "critical_count": 15,
+  "warning_count": 0,
+  "info_count": 0,
+  "empty_condition_count": 0,
+  "legacy_state_ref_count": 0,
+  "placeholder_input_count": 0,
+  "true_condition_count": 0,
+  "blank_selector_count": 11,
+  "blank_selector_examples": [
+    "step_1_check_vap_config.yaml#skills[0]",
+    "step_2_check_auth_profile.yaml#skills[0]",
+    "step_3_check_security_profile.yaml#skills[0]",
+    "step_4_check_domain_config.yaml#skills[0]",
+    "step_8_check_radius_global_config.yaml#skills[0]",
+    "step_9_check_radius_template.yaml#skills[0]",
+    "step_10_check_radius_server_item.yaml#skills[0]",
+    "step_11_check_web_auth_server_config.yaml#skills[0]"
+  ],
+  "files_with_issues": {
+    "step_0_check_vap_profile.yaml": 1,
+    "step_10_check_radius_server_item.yaml": 1,
+    "step_11_check_web_auth_server_config.yaml": 1,
+    "step_12_check_portal_server_template.yaml": 1,
+    "step_13_check_free_rule.yaml": 1,
+    "step_14_check_account_blocked.yaml": 1,
+    "step_15_check_dot1x_quiet.yaml": 1,
+    "step_16_check_vlan_created.yaml": 1,
+    "step_1_check_vap_config.yaml": 1,
+    "step_2_check_auth_profile.yaml": 1,
+    "step_3_check_security_profile.yaml": 1,
+    "step_4_check_domain_config.yaml": 1,
+    "step_5_check_aaa_fail_record.yaml": 1,
+    "step_8_check_radius_global_config.yaml": 1,
+    "step_9_check_radius_template.yaml": 1
+  },
+  "issue_counter": {
+    "critical": 15,
+    "next_node": 15
+  },
+  "issues": [
+    {
+      "file": "step_0_check_vap_profile.yaml",
+      "step_id": "step_0_check_vap_profile",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_1_check_vap_config.yaml",
+      "step_id": "step_1_check_vap_config",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_2_check_auth_profile.yaml",
+      "step_id": "step_2_check_auth_profile",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_3_check_security_profile.yaml",
+      "step_id": "step_3_check_security_profile",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_4_check_domain_config.yaml",
+      "step_id": "step_4_check_domain_config",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_5_check_aaa_fail_record.yaml",
+      "step_id": "step_5_check_aaa_fail_record",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_8_check_radius_global_config.yaml",
+      "step_id": "step_8_check_radius_global_config",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_9_check_radius_template.yaml",
+      "step_id": "step_9_check_radius_template",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_10_check_radius_server_item.yaml",
+      "step_id": "step_10_check_radius_server_item",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_11_check_web_auth_server_config.yaml",
+      "step_id": "step_11_check_web_auth_server_config",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_12_check_portal_server_template.yaml",
+      "step_id": "step_12_check_portal_server_template",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_13_check_free_rule.yaml",
+      "step_id": "step_13_check_free_rule",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_14_check_account_blocked.yaml",
+      "step_id": "step_14_check_account_blocked",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_15_check_dot1x_quiet.yaml",
+      "step_id": "step_15_check_dot1x_quiet",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_16_check_vlan_created.yaml",
+      "step_id": "step_16_check_vlan_created",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    }
+  ]
+}

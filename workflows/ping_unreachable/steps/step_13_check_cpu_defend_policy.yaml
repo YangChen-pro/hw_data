@@ -1,0 +1,25 @@
+step_id: step_13_check_cpu_defend_policy
+name: 检查本端 cpu-defend 防攻击策略
+content: 在本端设备上执行 display cpu-defend policy，查看当前 hop 本端设备调用在全局或特定槽位的防攻击策略名，为后续检查黑名单配置做准备。
+type: diagnosis
+skills:
+- skill_id: skill_display_cpu_defend_policy
+  target_device: current_device
+  inputs: {}
+  selector: 在 cpu_defend_policy_table 中定位当前设备实际生效的防攻击策略，并提取 policy_name 和 related_slot。
+  extraction_schema:
+  - name: policy_name
+    type: string
+    description: 防攻击策略名称，如test1或default
+  - name: related_slot
+    type: string
+    description: '[custom] 策略关联的槽位，<>表示全局，<1>表示1号槽位'
+transitions:
+  rules:
+  - description: 成功获取本端设备实际生效的 cpu-defend 策略名称，继续检查黑名单配置
+    condition: extracted.policy_name != ''
+    next_node: step_14_check_cpu_defend_blacklist
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

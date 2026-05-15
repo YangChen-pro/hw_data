@@ -1,0 +1,24 @@
+file,step_id,severity,category,path,line,message,recommendation
+step_0_check_interface_status.yaml,step_0_check_interface_status,critical,extraction_schema,transitions.rules[0].condition,,condition 使用了未声明的 extracted 字段: access_port,把该字段补入 extraction_schema，或修改 condition
+step_0_check_interface_status.yaml,step_0_check_interface_status,critical,extraction_schema,transitions.rules[1].condition,,condition 使用了未声明的 extracted 字段: interconnect_port,把该字段补入 extraction_schema，或修改 condition
+step_0_check_interface_status.yaml,step_0_check_interface_status,critical,extraction_schema,transitions.rules[2].condition,,condition 使用了未声明的 extracted 字段: access_port,把该字段补入 extraction_schema，或修改 condition
+step_0_check_interface_status.yaml,step_0_check_interface_status,critical,extraction_schema,transitions.rules[2].condition,,condition 使用了未声明的 extracted 字段: interconnect_port,把该字段补入 extraction_schema，或修改 condition
+step_0_check_interface_status.yaml,step_0_check_interface_status,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_2_check_mac_address_table.yaml,step_2_check_mac_address_table,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_3_check_vlan_created.yaml,step_3_check_vlan_created,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_4_create_vlan.yaml,step_4_create_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_5_check_interface_vlan_membership.yaml,step_5_check_interface_vlan_membership,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_7_config_access_port_vlan.yaml,step_7_config_access_port_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_8_config_trunk_port_vlan.yaml,step_8_config_trunk_port_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_9_config_hybrid_port_vlan.yaml,step_9_config_hybrid_port_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_10_check_interconnect_vlan_pass.yaml,step_10_check_interconnect_vlan_pass,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_11_recheck_mac_address_table.yaml,step_11_recheck_mac_address_table,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_12_check_port_isolation.yaml,step_12_check_port_isolation,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_13_check_static_arp.yaml,step_13_check_static_arp,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_15_check_lnp_interface_status.yaml,step_15_check_lnp_interface_status,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_16_check_lnp_link_type.yaml,step_16_check_lnp_link_type,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_17_check_lnp_configuration.yaml,step_17_check_lnp_configuration,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_18_check_ops_status.yaml,step_18_check_ops_status,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_10a_config_interconnect_access_vlan.yaml,step_10a_config_interconnect_access_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_10b_config_interconnect_trunk_vlan.yaml,step_10b_config_interconnect_trunk_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id
+step_10c_config_interconnect_hybrid_vlan.yaml,step_10c_config_interconnect_hybrid_vlan,critical,next_node,transitions.default,,目标节点为空,补充合法的 step_id 或 conclusion_id

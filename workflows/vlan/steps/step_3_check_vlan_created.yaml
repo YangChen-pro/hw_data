@@ -1,0 +1,38 @@
+---
+step_id: step_3_check_vlan_created
+name: 检查业务 VLAN 是否已创建
+content: 在当前设备执行 display vlan，按 current_hop.vlan_id 判断业务 VLAN 是否已存在。若未创建则先创建 VLAN；若已存在则继续检查接口是否已加入该 VLAN。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 current_hop.vlan_id 才能检查 VLAN 是否存在。
+    condition: input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_display_vlan
+  target_device: current_device
+  inputs:
+    vlan_id:
+      name: vlan_id
+      source_type: workflow_input
+      source_key: input.current_hop.vlan_id
+      description: 当前检查对象关联的业务 VLAN ID
+  selector: 聚焦 VLAN {{ input.current_hop.vlan_id }} 的回显，并提取 vlan_exists。
+  extraction_schema:
+  - name: vlan_exists
+    type: boolean
+    description: 指定 VLAN 是否已经在设备上创建
+transitions:
+  rules:
+  - description: 指定 VLAN 尚未创建，需要先创建 VLAN。
+    condition: extracted.vlan_exists == false
+    next_node: step_4_create_vlan
+  - description: 指定 VLAN 已存在，继续检查接口 VLAN 成员关系。
+    condition: extracted.vlan_exists == true
+    next_node: step_5_check_interface_vlan_membership
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

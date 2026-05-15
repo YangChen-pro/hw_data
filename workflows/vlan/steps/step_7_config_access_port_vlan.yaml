@@ -1,0 +1,47 @@
+---
+step_id: step_7_config_access_port_vlan
+name: 配置接入侧端口（Access）加入 VLAN
+content: 在当前设备上将接入侧端口链路类型调整为 Access，并通过 port default vlan 将该端口加入目标 VLAN。完成后继续检查互联侧端口放行情况。
+type: configuration
+preconditions:
+  rules:
+  - description: 接入侧端口 Access 配置需要 current_hop.current_interface 和 current_hop.vlan_id。
+    condition: input.current_hop.current_interface != '' and input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_port_link_type_access
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要改为 Access 类型的接入侧端口
+  selector: null
+  extraction_schema: []
+- skill_id: skill_port_default_vlan
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要加入 VLAN 的 Access 接入侧端口
+    vlan_id:
+      name: vlan_id
+      source_type: workflow_input
+      source_key: input.current_hop.vlan_id
+      description: 需要加入的目标 VLAN ID
+  selector: null
+  extraction_schema: []
+transitions:
+  rules:
+  - description: 接入侧端口 Access 配置完成后，继续检查互联侧端口 VLAN 放行情况。
+    condition: True
+    next_node: step_10_check_interconnect_vlan_pass
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

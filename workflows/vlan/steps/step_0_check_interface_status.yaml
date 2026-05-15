@@ -1,0 +1,56 @@
+---
+step_id: step_0_check_interface_status
+name: 检查接入侧端口与互联侧端口状态
+content: 在当前设备执行 display interface，先按 current_hop.current_interface 聚焦接入侧端口，再按 current_hop.interconnect_interface 聚焦互联侧端口。若任一已提供的接口 current_state 不是 UP，则判定为接口或链路异常；否则继续检查 MAC 地址表。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 current_hop.current_interface 作为接入侧端口状态检查锚点，否则跳过到 MAC 地址表检查。
+    condition: input.current_hop.current_interface != ''
+    on_fail:
+      action: skip
+      next_node: step_2_check_mac_address_table
+skills:
+- skill_id: skill_display_interface
+  result_key: access_port
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 当前设备待检查的接入侧端口名
+  selector: 聚焦接口 {{ input.current_hop.current_interface }} 的回显，并提取 current_state。
+  extraction_schema:
+  - name: current_state
+    type: string
+    description: 接入侧端口当前状态，UP 表示接口正常，其他值表示接口异常或未启用
+- skill_id: skill_display_interface
+  result_key: interconnect_port
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.interconnect_interface
+      description: 当前设备待检查的互联侧端口名；未提供时仅返回空结果
+  selector: 若已提供接口 {{ input.current_hop.interconnect_interface }}，则聚焦该互联侧端口的回显并提取 current_state；若未提供，则返回 current_state 为 null。
+  extraction_schema:
+  - name: current_state
+    type: string
+    description: 互联侧端口当前状态；未提供互联侧端口时返回 null
+transitions:
+  rules:
+  - description: 接入侧端口状态不是 UP，说明接口或链路存在异常。
+    condition: extracted.access_port.current_state != 'UP'
+    next_node: CONCLUSION_INTERFACE_OR_LINK_FAULT
+  - description: 已提供互联侧端口且其状态不是 UP，说明接口或链路存在异常。
+    condition: input.current_hop.interconnect_interface != '' and extracted.interconnect_port.current_state != 'UP'
+    next_node: CONCLUSION_INTERFACE_OR_LINK_FAULT
+  - description: 接入侧端口状态正常，且互联侧端口未提供或状态正常，继续检查 MAC 地址表。
+    condition: extracted.access_port.current_state == 'UP' and (input.current_hop.interconnect_interface == '' or extracted.interconnect_port.current_state == 'UP')
+    next_node: step_2_check_mac_address_table
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -1,0 +1,27 @@
+step_id: step_9_check_classifier_acl
+name: 检查对端重定向流分类关联的 ACL
+content: 在对端设备执行 display traffic classifier <classifier_name>，查看指定流分类关联的 ACL 编号。
+type: diagnosis
+skills:
+- skill_id: skill_display_traffic_classifier
+  target_device: peer_device
+  inputs:
+    classifier_name:
+      name: classifier_name
+      source_type: step_output
+      source_key: state.results.step_8_check_traffic_behavior_redirect.classifier_name
+      description: 引用上一步识别出的流分类名称
+  selector: 针对指定 classifier_name 的流分类详情，提取 if_match_acl。
+  extraction_schema:
+  - name: if_match_acl
+    type: string
+    description: '[custom] 流分类中if-match acl配置的ACL编号，如''3000''。若未找到则为空字符串'
+transitions:
+  rules:
+  - description: 已识别出与重定向流行为关联的 ACL 编号，继续检查该 ACL 是否覆盖当前 hop 的 Ping 流量
+    condition: extracted.if_match_acl != ''
+    next_node: step_10_check_redirect_acl_detail
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

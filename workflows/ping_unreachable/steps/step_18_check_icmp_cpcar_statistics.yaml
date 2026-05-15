@@ -1,0 +1,57 @@
+step_id: step_18_check_icmp_cpcar_statistics
+name: 检查本端 ICMP 报文 CPCAR 统计丢包情况
+content: 先采集一次 CPCAR 计数作为基线，再在本端设备持续发起一轮 Ping，随后再次采集 CPCAR 计数并做前后对比。若 Total Dropped
+  或 Last 5 Min Dropped 增加，则判定 ICMP 报文因 CPCAR 限速被丢弃。
+type: diagnosis
+skills:
+- skill_id: skill_display_cpu_defend_statistics_packet_type_icmp_all
+  target_device: current_device
+  result_key: cpcar_before
+  inputs: {}
+  selector: null
+  extraction_schema:
+  - name: total_dropped_packets
+    type: integer
+    description: '[custom] 基线采样：Total Dropped列计数，表示ICMP报文累计被CPCAR丢弃数'
+  - name: last_5_min_dropped_packets
+    type: integer
+    description: '[custom] 基线采样：Last 5 Min Dropped列计数，表示最近5分钟ICMP报文被CPCAR丢弃数'
+- skill_id: skill_ping
+  target_device: current_device
+  result_key: ping_probe
+  inputs:
+    destination_ip:
+      name: destination_ip
+      source_type: workflow_input
+      source_key: input.current_hop.peer_device
+      description: 当前 hop 对端设备地址
+  selector: null
+  extraction_schema:
+  - name: ping_success
+    type: boolean
+    description: Ping探测执行结果（用于保证二次采样之间有真实探测流量）
+- skill_id: skill_display_cpu_defend_statistics_packet_type_icmp_all
+  target_device: current_device
+  result_key: cpcar_after
+  inputs: {}
+  selector: null
+  extraction_schema:
+  - name: total_dropped_packets
+    type: integer
+    description: '[custom] 二次采样：Total Dropped列计数，表示ICMP报文累计被CPCAR丢弃数'
+  - name: last_5_min_dropped_packets
+    type: integer
+    description: '[custom] 二次采样：Last 5 Min Dropped列计数，表示最近5分钟ICMP报文被CPCAR丢弃数'
+transitions:
+  rules:
+  - description: 二次采样相比基线采样，Total Dropped或Last 5 Min Dropped出现增长，判定ICMP报文因CPCAR限速被丢弃
+    condition: extracted.cpcar_after.total_dropped_packets > extracted.cpcar_before.total_dropped_packets
+      or extracted.cpcar_after.last_5_min_dropped_packets > extracted.cpcar_before.last_5_min_dropped_packets
+    next_node: CONCLUSION_ICMP_CPCAR_DROP
+  - description: 未发现 CPCAR 丢包增长，当前步骤未定位到根因，返回人工收发观测建议
+    condition: True
+    next_node: CONCLUSION_CHECK_PACKET_TX_RX
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

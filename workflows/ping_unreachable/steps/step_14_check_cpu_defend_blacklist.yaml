@@ -1,0 +1,37 @@
+---
+step_id: step_14_check_cpu_defend_blacklist
+name: 检查本端 cpu-defend 黑名单配置
+content: 通过 display cpu-defend policy <policy-name> 查看策略中是否配置黑名单（Blacklist）。若策略中配置了黑名单，则继续检查黑名单关联的 ACL。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要先获取到本端设备生效的 cpu-defend 策略名称，否则当前 step 不适用。
+    condition: state.results.step_13_check_cpu_defend_policy.policy_name != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_cpu_defend_policy
+  target_device: current_device
+  inputs:
+    policy_name:
+      name: policy_name
+      source_type: step_output
+      source_key: state.results.step_13_check_cpu_defend_policy.policy_name
+      description: 引用上一步识别出的 cpu-defend 策略名称
+  selector: 按 {{ state.results.step_13_check_cpu_defend_policy.policy_name }} 在 cpu_defend_policy_table 中定位对应策略，并提取 blacklist 和 blacklist_acl_number。
+  extraction_schema:
+  - name: blacklist
+    type: string
+    description: "[custom] 黑名单配置行，如'Blacklist 1 ACL number : 3300'；若策略中未配置黑名单则为空字符串"
+  - name: blacklist_acl_number
+    type: string
+    description: "[custom] 从 Blacklist 配置行中提取的 ACL 编号，如'3300'；若未配置黑名单则为空字符串"
+transitions:
+  rules:
+  - description: 策略中配置了黑名单（Blacklist字段不为空），需进一步检查ACL内容是否命中对端IP
+    condition: extracted.blacklist != ''
+    next_node: step_15_check_blacklist_acl
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

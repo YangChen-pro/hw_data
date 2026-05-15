@@ -1,0 +1,43 @@
+---
+step_id: step_9_check_radius_template
+name: 检查 RADIUS 服务器模板配置
+content: 进入 RADIUS 服务器模板视图执行 display this，检查模板下的认证服务器 IP、源 IP 配置和共享密钥配置。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 RADIUS 服务器模板名称才能进入模板视图检查配置。
+    condition: input.current_hop.radius_server_template != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_this_radius_template
+  target_device: current_device
+  inputs:
+    radius_server_template:
+      name: radius_server_template
+      source_type: workflow_input
+      source_key: input.current_hop.radius_server_template
+      description: 需要检查配置的 RADIUS 服务器模板名称
+  selector: null
+  extraction_schema:
+  - name: auth_server_ip
+    type: string
+    description: RADIUS 认证服务器 IP 地址
+  - name: template_source_ip
+    type: string
+    description: RADIUS 模板下配置的源 IP 地址，未配置时为空
+  - name: shared_key_configured
+    type: boolean
+    description: 模板下是否配置了共享密钥
+transitions:
+  rules:
+  - description: 全局和模板均未配置源 IP，RADIUS 通信将使用路由出接口 IP，可能与服务器端配置不一致。
+    condition: (state.results.step_8_check_radius_global_config.global_source_ip == '-' or state.results.step_8_check_radius_global_config.global_source_ip == '') and extracted.template_source_ip == ''
+    next_node: CONCLUSION_RADIUS_SOURCE_IP_MISMATCH
+  - description: 源 IP 已配置或全局已配置，继续检查 RADIUS 服务器运行状态。
+    condition: True
+    next_node: step_10_check_radius_server_item
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

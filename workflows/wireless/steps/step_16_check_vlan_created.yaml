@@ -1,0 +1,29 @@
+---
+step_id: step_16_check_vlan_created
+name: 检查业务 VLAN 是否已创建
+content: 执行 display vlan summary，检查业务 VLAN 是否已在设备上创建。业务 VLAN 未创建可能导致终端不响应 EAP 报文或 Portal 重定向失败。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要业务 VLAN ID 才能检查。
+    condition: input.current_hop.service_vlan_id != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_vlan_summary
+  target_device: current_device
+  inputs: {}
+  selector: 在 VLAN 列表中检查 {{ input.current_hop.service_vlan_id }} 是否存在。
+  extraction_schema:
+  - name: vlan_exists
+    type: boolean
+    description: 指定的业务 VLAN 是否已在设备上创建
+transitions:
+  rules:
+  - description: 业务 VLAN 未创建。
+    condition: extracted.vlan_exists == false
+    next_node: CONCLUSION_VLAN_NOT_CREATED
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

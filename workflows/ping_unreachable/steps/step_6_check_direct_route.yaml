@@ -1,0 +1,41 @@
+---
+step_id: step_6_check_direct_route
+name: 检查本端到对端邻接路由
+content: 当前 step 只检查单 hop 直连性：在本端设备上执行 display ip routing-table <next_hop_ip>，仅针对当前 hop 的对端邻接 IP 判断路由类型。Proto 为 Direct 表示当前 hop 三层直连；存在但非 Direct 表示当前 hop 路由异常；无回显表示当前 hop 到该邻接无路由。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 next_hop_ip 作为当前 hop 邻接路由查询目标，否则当前 step 不适用。
+    condition: input.current_hop.next_hop_ip != ''
+    on_fail:
+      action: skip
+      next_node: step_7_check_policy_routing_applied
+skills:
+- skill_id: skill_display_ip_routing_table
+  target_device: current_device
+  inputs:
+    ip_address:
+      name: ip_address
+      source_type: workflow_input
+      source_key: input.current_hop.next_hop_ip
+      description: 当前 hop 的对端三层邻接 IP
+  selector: 
+  extraction_schema:
+  - name: Proto
+    type: string
+    description: 路由的协议类型，如Direct表示直连路由，Static表示静态路由，OSPF表示OSPF路由。若命令输出为空（无路由）则此字段为空字符串
+transitions:
+  rules:
+  - description: 无路由（命令输出为空，未找到匹配路由）
+    condition: extracted.Proto == ''
+    next_node: CONCLUSION_NO_ROUTE
+  - description: 路由存在且为直连路由（Proto=Direct）
+    condition: extracted.Proto == 'Direct'
+    next_node: step_7_check_policy_routing_applied
+  - description: 路由存在但为非直连路由（如Static/OSPF等），可能导致报文无法从直连接口转发
+    condition: extracted.Proto != 'Direct' and extracted.Proto != ''
+    next_node: CONCLUSION_ROUTE_NOT_DIRECT
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

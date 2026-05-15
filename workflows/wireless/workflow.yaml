@@ -1,0 +1,221 @@
+---
+workflow_id: wf_wireless_auth
+name: 无线认证故障诊断
+version: '1.0'
+description: 华为 AC/AP 设备无线认证故障排查，覆盖 802.1X 认证、HTTP Portal 认证、Portal 协议认证和 Portal 重定向等场景的配置检查与故障定位
+input_schema:
+- name: facts
+  type: object
+  required: false
+  description: 外部补充事实信息
+  properties:
+  - name: terminal_mac
+    type: string
+    required: false
+    description: 故障终端 MAC 地址（H-H-H 格式），用于 display aaa online-fail-record 和 display dot1x quiet-user 等命令定位
+- name: current_hop
+  type: object
+  required: true
+  description: 当前排查锚点信息
+  properties:
+  - name: hop_index
+    type: integer
+    required: true
+    description: 当前跳索引
+  - name: current_device
+    type: string
+    required: true
+    description: 当前 AC 设备管理 IP
+  - name: path_state
+    type: string
+    required: true
+    description: 路径状态(resolved|partial|failed)
+  - name: ssid
+    type: string
+    required: false
+    description: 故障终端关联的 SSID，用于 display vap-profile all 的 selector 定位对应 VAP 模板
+  - name: auth_type
+    type: string
+    required: false
+    description: 认证类型（dot1x/portal），用于 VAP 配置链中判断需要检查安全模板还是 Portal 接入模板
+  - name: service_vlan_id
+    type: string
+    required: false
+    description: 业务 VLAN ID，用于检查 VLAN 是否已创建
+  - name: radius_server_template
+    type: string
+    required: false
+    description: RADIUS 服务器模板名称，用于 display this 进入 RADIUS 模板视图和 display radius-server item template 查询服务器状态
+  - name: portal_server_template
+    type: string
+    required: false
+    description: Portal 服务器模板名称，用于 display this 进入 Portal 服务器模板视图检查配置
+start_node:
+- step_id: step_0_check_vap_profile
+  description: VAP 模板配置链式检查入口，按 SSID 定位 VAP 模板并逐层检查安全模板、认证模板、接入模板、域配置
+- step_id: step_5_check_aaa_fail_record
+  description: AAA 上线失败原因诊断，按终端 MAC 查询失败记录并按失败原因分流
+- step_id: step_8_check_radius_global_config
+  description: RADIUS 服务器状态检查链，检查全局源 IP、模板源 IP 和服务器状态
+- step_id: step_11_check_web_auth_server_config
+  description: Portal 服务器配置检查，检查侦听端口和 Portal 版本
+- step_id: step_13_check_free_rule
+  description: 免认证规则检查，确认是否放通 DNS 服务器
+- step_id: step_14_check_account_blocked
+  description: 认证账号锁定检查
+- step_id: step_15_check_dot1x_quiet
+  description: 802.1X 终端静默状态检查
+- step_id: step_16_check_vlan_created
+  description: 业务 VLAN 是否已创建检查
+steps:
+- step_0_check_vap_profile
+- step_1_check_vap_config
+- step_2_check_auth_profile
+- step_3_check_security_profile
+- step_4_check_domain_config
+- step_5_check_aaa_fail_record
+- step_8_check_radius_global_config
+- step_9_check_radius_template
+- step_10_check_radius_server_item
+- step_11_check_web_auth_server_config
+- step_12_check_portal_server_template
+- step_13_check_free_rule
+- step_14_check_account_blocked
+- step_15_check_dot1x_quiet
+- step_16_check_vlan_created
+conclusions:
+  CONCLUSION_HANDLER_EXECUTION_FAILED:
+    level: warning
+    message: 工作流处理器执行失败
+    suggestion: 请检查 workflow 引擎运行状态、step 编排配置和执行上下文，然后重试
+    repair_action:
+  CONCLUSION_CLI_COMMAND_EXECUTION_FAILED:
+    level: warning
+    message: 设备命令执行失败
+    suggestion: 请检查设备连通性、认证权限、命令可用性与执行超时情况，然后重试
+    repair_action:
+  CONCLUSION_PARSE_FAILURE:
+    level: warning
+    message: 命令回显解析失败
+    suggestion: 请检查命令回显格式是否变化、解析 schema/selector 是否匹配，并修正后重试
+    repair_action:
+  CONCLUSION_MANUAL_CHECK:
+    level: error
+    message: 无法自动判断，需人工介入
+    suggestion: 请补充必要输入或联系网络管理员进一步确认现场信息
+    repair_action:
+  CONCLUSION_ESCALATE_WITH_DEVICE_INFO:
+    level: error
+    message: 执行现有排查步骤后无线认证问题仍未解决，需要携带设备侧诊断信息升级给技术支持人员进一步分析
+    suggestion: 收集步骤执行结果、设备配置文件、日志信息和告警信息后联系技术支持人员
+    repair_action:
+  CONCLUSION_VAP_PROFILE_NOT_FOUND:
+    level: error
+    message: 未找到与指定 SSID 对应的 VAP 模板，可能 SSID 名称配置错误或 VAP 模板未创建
+    suggestion: 检查设备上 display vap-profile all 输出，确认 SSID 名称是否正确及 VAP 模板是否已创建
+    repair_action:
+  CONCLUSION_MULTIPLE_VAP_SAME_SSID:
+    level: warning
+    message: 多个 VAP 模板绑定了相同 SSID，可能导致终端接入失败等异常现象
+    suggestion: 不建议多个 VAP 模板绑定相同 SSID，请修改配置确保每个 SSID 对应唯一的 VAP 模板
+    repair_action:
+  CONCLUSION_SECURITY_PROFILE_MISSING:
+    level: error
+    message: VAP 模板未绑定安全模板（security-profile），802.1X 认证需要安全模板配置 WPA/WPA2 加密方式
+    suggestion: 在 VAP 模板下绑定安全模板，并确认安全模板配置了正确的安全策略
+    repair_action:
+  CONCLUSION_AUTH_PROFILE_MISSING:
+    level: error
+    message: VAP 模板未绑定认证模板（authentication-profile），无法进行认证
+    suggestion: 在 VAP 模板下绑定认证模板
+    repair_action:
+  CONCLUSION_ACCESS_PROFILE_MISSING:
+    level: error
+    message: 认证模板未绑定接入模板（dot1x-access-profile 或 portal-access-profile），认证流程无法完成
+    suggestion: 在认证模板下绑定对应的接入模板
+    repair_action:
+  CONCLUSION_DOMAIN_CONFIG_MISSING:
+    level: error
+    message: 认证域下未配置认证方案（authentication-scheme）或未绑定 RADIUS 服务器模板，RADIUS 认证无法完成
+    suggestion: 检查域配置，确认已配置认证方案和 RADIUS 服务器模板
+    repair_action:
+  CONCLUSION_RADIUS_AUTH_REJECT:
+    level: error
+    message: RADIUS 服务器回应认证拒绝，可能原因包括用户名密码错误、授权策略无法匹配等
+    suggestion: 排查 RADIUS 服务器日志找到拒绝根因，调整服务器、终端或设备配置
+    repair_action:
+  CONCLUSION_RADIUS_NO_RESPONSE:
+    level: error
+    message: RADIUS 服务器无响应（The radius server is up but has no reply 或 The radius server is not reachable）
+    suggestion: 检查 RADIUS 服务器是否添加了正确的设备 IP、设备与服务器之间链路是否正常、共享密钥是否一致
+    repair_action:
+  CONCLUSION_RADIUS_AUTH_DATA_ERROR:
+    level: error
+    message: RADIUS 服务器授权数据错误（Authorization data error），服务器授权了设备上不存在的 VLAN 或 ACL
+    suggestion: 在设备上创建对应的授权内容，或在 RADIUS 模板下配置忽略对应授权属性
+    repair_action:
+  CONCLUSION_ACCOUNT_BLOCKED:
+    level: error
+    message: 认证账号被锁定（Remote user is blocked），该账号连续认证失败次数过多
+    suggestion: 使用 remote-user authen-fail unblock 解锁账号，并排查之前认证失败的根因
+    repair_action: 在 AAA 视图下执行 remote-user authen-fail unblock username <用户名> 解锁账号
+  CONCLUSION_TERMINAL_QUIET:
+    level: warning
+    message: 终端 MAC 地址处于 802.1X 静默状态，在静默期内认证报文将被丢弃
+    suggestion: 等待静默期结束后重新尝试认证，或执行 dot1x timer quiet-period 调小静默时间
+    repair_action:
+  CONCLUSION_RADIUS_SERVER_DOWN:
+    level: error
+    message: RADIUS 服务器状态异常（STState 不是 STState-up），认证请求无法正常处理
+    suggestion: 检查 RADIUS 服务器运行状态、网络连通性和配置
+    repair_action:
+  CONCLUSION_RADIUS_SOURCE_IP_MISMATCH:
+    level: warning
+    message: 设备发送 RADIUS 报文的源 IP 可能与 RADIUS 服务器上添加的设备 IP 不一致
+    suggestion: 检查 RADIUS 全局配置和模板配置的源 IP 地址，确认与服务器上添加的设备 IP 一致
+    repair_action:
+  CONCLUSION_PORTAL_LISTENING_PORT_CHANGED:
+    level: warning
+    message: 设备 Portal 协议侦听端口已从默认值 2000 修改，可能与 Portal 服务器配置不一致
+    suggestion: 确认设备侦听端口与 Portal 服务器发送目的端口一致，或恢复默认端口
+    repair_action:
+  CONCLUSION_PORTAL_VERSION_RESTRICTED:
+    level: warning
+    message: 设备 Portal 协议版本被限制，可能不支持 Portal 服务器使用的协议版本
+    suggestion: 检查设备支持的 Portal 版本，建议恢复为缺省配置同时支持 v1/v2/v3
+    repair_action:
+  CONCLUSION_PORTAL_SERVER_DETECT_ENABLED:
+    level: warning
+    message: Portal 服务器模板下开启了 server-detect 探测功能，如果 Portal 服务器未配合开启心跳，将导致服务器状态异常、重定向失败
+    suggestion: 如果 Portal 服务器不支持心跳探测，请删除 server-detect 配置
+    repair_action:
+  CONCLUSION_FREE_RULE_DNS_MISSING:
+    level: error
+    message: 免认证规则模板中未放通 DNS 服务器地址，导致终端认证前无法解析域名，Portal 页面无法正常弹出
+    suggestion: 在 free-rule 模板下放通 DNS 服务器 IP 地址
+    repair_action:
+  CONCLUSION_SECURITY_POLICY_NO_DOT1X:
+    level: error
+    message: 安全模板已绑定但安全策略未包含 802.1X 认证配置（如 security wpa2 dot1x aes），导致 802.1X 认证无法生效
+    suggestion: 进入安全模板视图，配置正确的 WPA/WPA2 + dot1x 安全策略
+    repair_action:
+  CONCLUSION_PORTAL_SERVER_IP_MISSING:
+    level: error
+    message: Portal 服务器模板未配置服务器 IP 地址（server-ip），Portal 协议报文无法发送
+    suggestion: 在 Portal 服务器模板下配置正确的 server-ip 地址
+    repair_action:
+  CONCLUSION_PORTAL_URL_MISSING:
+    level: error
+    message: Portal 服务器模板未配置 URL，终端无法被重定向到 Portal 认证页面
+    suggestion: 在 Portal 服务器模板下配置正确的 URL
+    repair_action:
+  CONCLUSION_PORTAL_SHARED_KEY_MISSING:
+    level: warning
+    message: Portal 服务器模板未配置共享密钥（shared-key），Portal v2/v3 协议报文校验将失败
+    suggestion: 在 Portal 服务器模板下配置与 Portal 服务器一致的共享密钥
+    repair_action:
+  CONCLUSION_VLAN_NOT_CREATED:
+    level: error
+    message: 业务 VLAN 未在设备上创建，可能导致终端不响应 EAP 报文或 Portal 重定向失败
+    suggestion: 在设备上创建对应的业务 VLAN
+    repair_action: 执行 vlan <vlan-id> 创建业务 VLAN

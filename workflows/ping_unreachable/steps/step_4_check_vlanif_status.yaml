@@ -1,0 +1,49 @@
+---
+step_id: step_4_check_vlanif_status
+name: 检查本端 VLANIF 接口状态
+content: 执行 display ip interface brief 查看 VLANIF 接口状态，并同时检查物理状态与协议状态。再执行 display interface brief 查看当前物理接口状态，也同时检查物理状态与协议状态。若任一接口 physical_status 或 protocol_status 为 down，则判定接口异常。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要同时具备 VLANIF 与本端物理接口锚点，否则当前 step 不适用。
+    condition: input.current_hop.vlanif_interface != '' and input.current_hop.current_interface != ''
+    on_fail:
+      action: skip
+      next_node: step_5_check_layer2_blocking
+skills:
+- skill_id: skill_display_ip_interface_brief
+  target_device: current_device
+  result_key: vlanif_interface_brief
+  inputs: {}
+  selector: 按 {{ input.current_hop.vlanif_interface }} 在 interface_table 中定位当前 hop 的本端 VLANIF 接口，并提取该行的 physical_status 和 protocol_status。
+  extraction_schema:
+  - name: physical_status
+    type: string
+    description: "[custom] VLANIF接口的物理运行状态，Up表示接口正常，Down表示该VLAN下无成员接口Up"
+  - name: protocol_status
+    type: string
+    description: "[custom] VLANIF接口的协议状态，如up或down"
+- skill_id: skill_display_interface_brief
+  target_device: current_device
+  result_key: current_port_interface_brief
+  inputs: {}
+  selector: 按 {{ input.current_hop.current_interface }} 在 interface_table 中定位当前 hop 的本端物理接口，并提取该行的 physical_status 和 protocol_status。
+  extraction_schema:
+  - name: physical_status
+    type: string
+    description: "[custom] 物理接口的运行状态，Up表示链路正常，Down表示物理链路异常"
+  - name: protocol_status
+    type: string
+    description: "[custom] 物理接口的协议状态，如up或down"
+transitions:
+  rules:
+  - description: VLANIF接口或物理接口的物理状态或协议状态为Down
+    condition: extracted.vlanif_interface_brief.physical_status == 'down' or extracted.vlanif_interface_brief.protocol_status == 'down' or extracted.current_port_interface_brief.physical_status == 'down' or extracted.current_port_interface_brief.protocol_status == 'down'
+    next_node: CONCLUSION_INTERFACE_DOWN
+  - description: VLANIF接口和物理接口的物理状态与协议状态均为Up，继续检查二层协议阻塞
+    condition: extracted.vlanif_interface_brief.physical_status == 'up' and extracted.vlanif_interface_brief.protocol_status == 'up' and extracted.current_port_interface_brief.physical_status == 'up' and extracted.current_port_interface_brief.protocol_status == 'up'
+    next_node: step_5_check_layer2_blocking
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

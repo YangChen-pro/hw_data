@@ -1,0 +1,32 @@
+---
+step_id: step_11_check_web_auth_server_config
+name: 检查 Portal 全局配置
+content: 执行 display web-auth-server configuration，检查 Portal 协议侦听端口和支持的 Portal 版本。
+type: diagnosis
+skills:
+- skill_id: skill_display_web_auth_server_configuration
+  target_device: current_device
+  inputs: {}
+  selector: null
+  extraction_schema:
+  - name: listening_port
+    type: integer
+    description: 设备侦听 Portal 协议报文的端口号，默认为 2000
+  - name: portal_version
+    type: string
+    description: 设备支持的 Portal 协议版本（如 version 1, version 2, version 3）
+transitions:
+  rules:
+  - description: Portal 侦听端口已从默认值修改，可能与服务器不一致。
+    condition: extracted.listening_port != 2000
+    next_node: CONCLUSION_PORTAL_LISTENING_PORT_CHANGED
+  - description: Portal 版本被限制（不包含 v1 或 v2），可能与服务器不兼容。
+    condition: "'version 1' not in extracted.portal_version and 'version 2' not in extracted.portal_version"
+    next_node: CONCLUSION_PORTAL_VERSION_RESTRICTED
+  - description: 全局配置正常，继续检查 Portal 服务器模板。
+    condition: True
+    next_node: step_12_check_portal_server_template
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

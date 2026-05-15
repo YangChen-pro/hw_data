@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-05-15T16:32:10",
+  "workflow": "workflows/ping_unreachable/workflow.yaml",
+  "steps_dir": "workflows/ping_unreachable/steps",
+  "files": [
+    "report.md",
+    "report.json",
+    "issues.csv"
+  ]
+}

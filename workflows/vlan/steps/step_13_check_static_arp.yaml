@@ -1,0 +1,18 @@
+---
+step_id: step_13_check_static_arp
+name: 检查终端静态 ARP 情况
+content: 终端侧静态 ARP 检查通常无法直接在当前设备自动完成，因此该步骤改为消费 facts.terminal_static_arp_status。若已知终端静态 ARP 错误，则直接给出结论；否则直接输出升级结论。
+type: diagnosis
+skills: []
+transitions:
+  rules:
+  - description: 已确认终端存在错误静态 ARP 表项，可直接给出根因结论。
+    condition: input.facts.terminal_static_arp_status == 'incorrect'
+    next_node: CONCLUSION_STATIC_ARP_ERROR
+  - description: 已确认静态 ARP 正常，或暂未获得终端静态 ARP 异常证据，直接输出升级结论。
+    condition: input.facts.terminal_static_arp_status == '' or input.facts.terminal_static_arp_status == 'correct' or input.facts.terminal_static_arp_status == 'unknown'
+    next_node: CONCLUSION_ESCALATE_WITH_DEVICE_INFO
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

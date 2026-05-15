@@ -1,0 +1,411 @@
+{
+  "generated_at": "2026-05-15T16:32:10",
+  "workflow_path": "workflows/ping_unreachable/workflow.yaml",
+  "steps_dir": "workflows/ping_unreachable/steps",
+  "step_file_count": 18,
+  "workflow_step_count": 18,
+  "issue_count": 36,
+  "critical_count": 36,
+  "warning_count": 0,
+  "info_count": 0,
+  "empty_condition_count": 0,
+  "legacy_state_ref_count": 0,
+  "placeholder_input_count": 0,
+  "true_condition_count": 0,
+  "blank_selector_count": 6,
+  "blank_selector_examples": [
+    "step_6_check_direct_route.yaml#skills[0]",
+    "step_16_check_icmp_statistics_local.yaml#skills[0]",
+    "step_17_check_icmp_statistics_peer.yaml#skills[0]",
+    "step_18_check_icmp_cpcar_statistics.yaml#skills[0]",
+    "step_18_check_icmp_cpcar_statistics.yaml#skills[1]",
+    "step_18_check_icmp_cpcar_statistics.yaml#skills[2]"
+  ],
+  "files_with_issues": {
+    "step_10_check_redirect_acl_detail.yaml": 1,
+    "step_11_check_arp_learning.yaml": 1,
+    "step_12_check_mac_outbound.yaml": 1,
+    "step_13_check_cpu_defend_policy.yaml": 1,
+    "step_14_check_cpu_defend_blacklist.yaml": 1,
+    "step_15_check_blacklist_acl.yaml": 1,
+    "step_16_check_icmp_statistics_local.yaml": 1,
+    "step_17_check_icmp_statistics_peer.yaml": 1,
+    "step_18_check_icmp_cpcar_statistics.yaml": 3,
+    "step_1_check_port_vlan.yaml": 7,
+    "step_2_check_ip_interface.yaml": 3,
+    "step_3_check_physical_link.yaml": 5,
+    "step_4_check_vlanif_status.yaml": 5,
+    "step_5_check_layer2_blocking.yaml": 1,
+    "step_6_check_direct_route.yaml": 1,
+    "step_7_check_policy_routing_applied.yaml": 1,
+    "step_8_check_traffic_behavior_redirect.yaml": 1,
+    "step_9_check_classifier_acl.yaml": 1
+  },
+  "issue_counter": {
+    "critical": 36,
+    "extraction_schema": 18,
+    "next_node": 18
+  },
+  "issues": [
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: local_port_vlan",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: peer_port_vlan",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: local_port_vlan",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: peer_port_vlan",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[2].condition",
+      "message": "condition 使用了未声明的 extracted 字段: local_port_vlan",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[2].condition",
+      "message": "condition 使用了未声明的 extracted 字段: peer_port_vlan",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_1_check_port_vlan.yaml",
+      "step_id": "step_1_check_port_vlan",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_2_check_ip_interface.yaml",
+      "step_id": "step_2_check_ip_interface",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: local_ip_interface_brief",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_2_check_ip_interface.yaml",
+      "step_id": "step_2_check_ip_interface",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: peer_ip_interface_brief",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_2_check_ip_interface.yaml",
+      "step_id": "step_2_check_ip_interface",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_3_check_physical_link.yaml",
+      "step_id": "step_3_check_physical_link",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: local_eth_trunk",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_3_check_physical_link.yaml",
+      "step_id": "step_3_check_physical_link",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: peer_eth_trunk",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_3_check_physical_link.yaml",
+      "step_id": "step_3_check_physical_link",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: local_eth_trunk",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_3_check_physical_link.yaml",
+      "step_id": "step_3_check_physical_link",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: peer_eth_trunk",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_3_check_physical_link.yaml",
+      "step_id": "step_3_check_physical_link",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_4_check_vlanif_status.yaml",
+      "step_id": "step_4_check_vlanif_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: current_port_interface_brief",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_4_check_vlanif_status.yaml",
+      "step_id": "step_4_check_vlanif_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: vlanif_interface_brief",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_4_check_vlanif_status.yaml",
+      "step_id": "step_4_check_vlanif_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: current_port_interface_brief",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_4_check_vlanif_status.yaml",
+      "step_id": "step_4_check_vlanif_status",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[1].condition",
+      "message": "condition 使用了未声明的 extracted 字段: vlanif_interface_brief",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": null
+    },
+    {
+      "file": "step_4_check_vlanif_status.yaml",
+      "step_id": "step_4_check_vlanif_status",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_5_check_layer2_blocking.yaml",
+      "step_id": "step_5_check_layer2_blocking",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_6_check_direct_route.yaml",
+      "step_id": "step_6_check_direct_route",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_7_check_policy_routing_applied.yaml",
+      "step_id": "step_7_check_policy_routing_applied",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_8_check_traffic_behavior_redirect.yaml",
+      "step_id": "step_8_check_traffic_behavior_redirect",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_9_check_classifier_acl.yaml",
+      "step_id": "step_9_check_classifier_acl",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_10_check_redirect_acl_detail.yaml",
+      "step_id": "step_10_check_redirect_acl_detail",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_11_check_arp_learning.yaml",
+      "step_id": "step_11_check_arp_learning",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_12_check_mac_outbound.yaml",
+      "step_id": "step_12_check_mac_outbound",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_13_check_cpu_defend_policy.yaml",
+      "step_id": "step_13_check_cpu_defend_policy",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_14_check_cpu_defend_blacklist.yaml",
+      "step_id": "step_14_check_cpu_defend_blacklist",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_15_check_blacklist_acl.yaml",
+      "step_id": "step_15_check_blacklist_acl",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_16_check_icmp_statistics_local.yaml",
+      "step_id": "step_16_check_icmp_statistics_local",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_17_check_icmp_statistics_peer.yaml",
+      "step_id": "step_17_check_icmp_statistics_peer",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    },
+    {
+      "file": "step_18_check_icmp_cpcar_statistics.yaml",
+      "step_id": "step_18_check_icmp_cpcar_statistics",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: cpcar_after",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": 52
+    },
+    {
+      "file": "step_18_check_icmp_cpcar_statistics.yaml",
+      "step_id": "step_18_check_icmp_cpcar_statistics",
+      "severity": "critical",
+      "category": "extraction_schema",
+      "path": "transitions.rules[0].condition",
+      "message": "condition 使用了未声明的 extracted 字段: cpcar_before",
+      "recommendation": "把该字段补入 extraction_schema，或修改 condition",
+      "line": 52
+    },
+    {
+      "file": "step_18_check_icmp_cpcar_statistics.yaml",
+      "step_id": "step_18_check_icmp_cpcar_statistics",
+      "severity": "critical",
+      "category": "next_node",
+      "path": "transitions.default",
+      "message": "目标节点为空",
+      "recommendation": "补充合法的 step_id 或 conclusion_id",
+      "line": null
+    }
+  ]
+}

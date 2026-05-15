@@ -1,0 +1,137 @@
+workflow_id: vlan_workflow
+name: VLAN故障诊断
+version: '1.1'
+description: 当前设备接入侧端口与互联侧端口的 VLAN 故障诊断流程
+input_schema:
+- name: facts
+  type: object
+  required: true
+  description: VLAN 与 LNP 场景下用于自动诊断的补充事实。
+  properties:
+  - name: terminal_mac
+    type: string
+    required: false
+    description: 需要在设备 MAC 地址表中核对的终端 MAC 地址。
+  - name: hybrid_vlan_mode
+    type: string
+    required: false
+    description: Hybrid 接口放行 VLAN 的方式，建议取值 tagged 或 untagged。
+  - name: terminal_static_arp_status
+    type: string
+    required: false
+    description: 终端静态 ARP 检查结果，建议取值 correct、incorrect、unknown。
+- name: current_hop
+  type: object
+  required: true
+  description: 当前正在检查的 VLAN 或 LNP 单个检查对象。
+  properties:
+  - name: hop_index
+    type: integer
+    required: true
+    description: 当前检查对象在整条诊断链路中的顺序编号。
+  - name: current_device
+    type: string
+    required: true
+    description: 当前检查设备的管理地址或设备标识。
+  - name: path_state
+    type: string
+    required: true
+    description: 当前对象的上下文解析状态，建议取值 resolved、partial、failed。
+  - name: current_interface
+    type: string
+    required: false
+    description: 当前设备的接入侧端口名。
+  - name: interconnect_interface
+    type: string
+    required: false
+    description: 当前设备的互联侧端口名；仅在流量需经其他设备转发时提供。
+  - name: vlan_id
+    type: integer
+    required: false
+    description: 当前检查对象关联的 VLAN ID。
+start_node:
+- step_id: step_0_check_interface_status
+  description: 接入侧端口与互联侧端口状态、MAC 地址表与 VLAN 配置一致性检查
+- step_id: step_15_check_lnp_interface_status
+  description: LNP 接口状态与链路类型、OPS 配置检查
+steps:
+- step_0_check_interface_status
+- step_2_check_mac_address_table
+- step_3_check_vlan_created
+- step_4_create_vlan
+- step_5_check_interface_vlan_membership
+- step_7_config_access_port_vlan
+- step_8_config_trunk_port_vlan
+- step_9_config_hybrid_port_vlan
+- step_10_check_interconnect_vlan_pass
+- step_10a_config_interconnect_access_vlan
+- step_10b_config_interconnect_trunk_vlan
+- step_10c_config_interconnect_hybrid_vlan
+- step_11_recheck_mac_address_table
+- step_12_check_port_isolation
+- step_13_check_static_arp
+- step_15_check_lnp_interface_status
+- step_16_check_lnp_link_type
+- step_17_check_lnp_configuration
+- step_18_check_ops_status
+conclusions:
+  CONCLUSION_MANUAL_CHECK:
+    level: error
+    message: 无法自动判断，需人工介入
+    suggestion: 请补充必要输入或联系网络管理员进一步确认现场信息
+    repair_action:
+  CONCLUSION_HANDLER_EXECUTION_FAILED:
+    level: warning
+    message: 工作流处理器执行失败
+    suggestion: 请检查 workflow 引擎运行状态、step 编排配置和执行上下文，然后重试
+    repair_action:
+  CONCLUSION_CLI_COMMAND_EXECUTION_FAILED:
+    level: warning
+    message: 设备命令执行失败
+    suggestion: 请检查设备连通性、认证权限、命令可用性与执行超时情况，然后重试
+    repair_action:
+  CONCLUSION_PARSE_FAILURE:
+    level: warning
+    message: 命令回显解析失败
+    suggestion: 请检查命令回显格式是否变化、解析 schema/selector 是否匹配，并修正后重试
+    repair_action:
+  CONCLUSION_INTERFACE_OR_LINK_FAULT:
+    level: error
+    message: VLAN内需要互通的接口未处于Up状态，链路故障、接口被人为shutdown或物理接口损坏导致用户不能互通
+    suggestion: 检查接口运行状态、物理链路和接口shutdown配置，恢复接口正常Up状态
+    repair_action: 恢复接口和链路的正常工作状态
+  CONCLUSION_PORT_ISOLATION_ENABLED:
+    level: error
+    message: 设备接口上配置了二层端口隔离，导致同一VLAN内用户之间的二层报文被隔离无法互通
+    suggestion: 检查接口上的端口隔离配置，并执行undo port-isolate enable取消不合理的隔离
+    repair_action: 在故障接口上执行 undo port-isolate enable，取消错误的二层端口隔离配置
+  CONCLUSION_STATIC_ARP_ERROR:
+    level: error
+    message: 终端设备上配置了错误的静态ARP表项，导致VLAN内用户不能正常访问
+    suggestion: 检查并修正终端设备上的静态ARP表项，确保IP与MAC对应关系正确
+    repair_action: 修正错误的静态ARP配置
+  CONCLUSION_ESCALATE_WITH_DEVICE_INFO:
+    level: error
+    message: 执行现有排查步骤后VLAN内用户仍不能互通，需要携带设备侧诊断信息升级给技术支持人员进一步分析
+    suggestion: 收集步骤执行结果、设备配置文件、日志信息和告警信息后联系技术支持人员
+    repair_action: 收集设备诊断信息并升级给技术支持人员处理
+  CONCLUSION_LNP_INTERFACE_DOWN:
+    level: error
+    message: 当前设备与其他设备连接的接口状态为Down，链路故障或接口状态异常导致LNP协商失败
+    suggestion: 先按以太网接口物理DOWN的排查思路恢复接口状态，再重新检查LNP协商
+    repair_action: 先排除接口Down故障并恢复接口为Up状态
+  CONCLUSION_LNP_LINK_TYPE_ERROR:
+    level: error
+    message: 接口下的port link-type配置有误，不是negotiation-desirable或negotiation-auto，导致LNP协商结果错误
+    suggestion: 将接口下的port link-type修改为negotiation-desirable或者negotiation-auto
+    repair_action: 将 port link-type 修改为 negotiation-desirable 或 negotiation-auto
+  CONCLUSION_LNP_CONFIGURATION_ERROR:
+    level: error
+    message: LNP全局或接口下配置不正确，缺少Inp enable或undo port negotiation disable等关键配置，导致LNP协商失败
+    suggestion: 检查全局和接口下的LNP配置，补齐Inp enable和undo port negotiation disable等必要配置
+    repair_action: 全局配置 Inp enable，接口下配置 undo port negotiation disable
+  CONCLUSION_LNP_ESCALATE_WITH_DEVICE_INFO:
+    level: error
+    message: 执行现有LNP排查步骤后协商问题仍未解决，需要携带设备侧诊断信息升级给技术支持人员进一步分析
+    suggestion: 收集步骤执行结果、设备配置文件、日志信息和告警信息后联系技术支持人员
+    repair_action: 收集设备诊断信息并升级给技术支持人员处理

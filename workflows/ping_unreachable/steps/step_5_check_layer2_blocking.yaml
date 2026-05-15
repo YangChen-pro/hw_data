@@ -1,0 +1,45 @@
+---
+step_id: step_5_check_layer2_blocking
+name: 检查本端二层协议阻塞状态
+content: 如果 VLANIF 和物理接口均为 Up，则检查设备上是否运行了 STP 或 Smart Link 等二层协议，确认 Ping 业务经过的物理接口是否被阻塞。若接口被阻塞，需要修改相关配置。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要本端接口锚点 current_interface，否则当前 step 不适用。
+    condition: input.current_hop.current_interface != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_stp_brief
+  target_device: current_device
+  inputs: {}
+  selector: 按 {{ input.current_hop.current_interface }} 在 STP 状态表中定位当前 hop 本端接口对应的行，并提取该接口的 STP State。
+  extraction_schema:
+  - name: stp_state
+    type: string
+    description: "[custom] 当前 hop 本端接口在 STP 协议下的状态，DISCARDING 表示接口被 STP 阻塞无法转发报文"
+- skill_id: skill_display_rrpp_verbose
+  target_device: current_device
+  inputs: {}
+  selector: 按 {{ input.current_hop.current_interface }} 在 RRPP 输出中定位当前 hop 本端接口对应的端口状态。
+  extraction_schema:
+  - name: rrpp_port_status
+    type: string
+    description: "[custom] 当前 hop 本端接口在 RRPP 协议下的端口状态，BLOCKED 表示接口被 RRPP 阻塞"
+- skill_id: skill_display_smart_link_group_all
+  target_device: current_device
+  inputs: {}
+  selector: 按 {{ input.current_hop.current_interface }} 在 Smart Link 组输出中定位当前 hop 本端接口所属的 Smart Link 组及其状态。
+  extraction_schema:
+  - name: smart_link_state
+    type: string
+    description: "[custom] 当前 hop 本端接口所属 Smart Link 组的状态，Inactive 表示该组接口处于阻塞状态"
+transitions:
+  rules:
+  - description: 存在接口被STP/RRPP/Smart Link阻塞（STP State为DISCARDING，RRPP Port status为BLOCKED，或Smart Link State为Inactive）
+    condition: extracted.stp_state == 'DISCARDING' or extracted.rrpp_port_status == 'BLOCKED' or extracted.smart_link_state == 'Inactive'
+    next_node: CONCLUSION_PORT_BLOCKED
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

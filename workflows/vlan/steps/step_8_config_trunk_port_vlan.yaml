@@ -1,0 +1,47 @@
+---
+step_id: step_8_config_trunk_port_vlan
+name: 配置接入侧端口（Trunk）加入 VLAN
+content: 在当前设备上将接入侧端口链路类型调整为 Trunk，并通过 port trunk allow-pass vlan 放行业务 VLAN。完成后继续检查互联侧端口放行情况。
+type: configuration
+preconditions:
+  rules:
+  - description: 接入侧端口 Trunk 配置需要 current_hop.current_interface 和 current_hop.vlan_id。
+    condition: input.current_hop.current_interface != '' and input.current_hop.vlan_id
+    on_fail:
+      action: skip
+      next_node: CONCLUSION_MANUAL_CHECK
+skills:
+- skill_id: skill_port_link_type_trunk
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要改为 Trunk 类型的接入侧端口
+  selector: null
+  extraction_schema: []
+- skill_id: skill_port_trunk_allow_pass_vlan
+  target_device: current_device
+  inputs:
+    interface_name:
+      name: interface_name
+      source_type: workflow_input
+      source_key: input.current_hop.current_interface
+      description: 需要放行业务 VLAN 的 Trunk 接入侧端口
+    vlan_id:
+      name: vlan_id
+      source_type: workflow_input
+      source_key: input.current_hop.vlan_id
+      description: 需要放行的 VLAN ID
+  selector: null
+  extraction_schema: []
+transitions:
+  rules:
+  - description: 接入侧端口 Trunk 配置完成后，继续检查互联侧端口 VLAN 放行情况。
+    condition: True
+    next_node: step_10_check_interconnect_vlan_pass
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

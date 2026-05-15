@@ -1,0 +1,23 @@
+---
+step_id: step_7_check_policy_routing_applied
+name: 检查对端流策略应用记录
+content: 执行 display traffic-policy applied-record，查看流策略的应用记录。若存在流策略应用记录，则继续检查是否配置了策略路由。
+type: diagnosis
+skills:
+- skill_id: skill_display_traffic_policy_applied_record
+  target_device: peer_device
+  inputs: {}
+  selector: 在 policy_record_table 中定位与当前 hop 相关的流策略应用记录，并提取对应的 behavior_name。
+  extraction_schema:
+  - name: behavior_name
+    type: string
+    description: 当前 hop 相关流策略关联的流行为名称
+transitions:
+  rules:
+  - description: 存在流策略应用记录，需进一步检查流行为是否包含重定向
+    condition: extracted.behavior_name != ''
+    next_node: step_8_check_traffic_behavior_redirect
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

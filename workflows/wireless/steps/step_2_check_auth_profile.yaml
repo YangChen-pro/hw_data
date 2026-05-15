@@ -1,0 +1,52 @@
+---
+step_id: step_2_check_auth_profile
+name: 检查认证模板配置
+content: 进入认证模板视图执行 display this，检查认证模板下绑定的接入模板（dot1x-access-profile 或 portal-access-profile）和接入域（access-domain）是否存在。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 step_1 提取的认证模板名称才能进入认证模板视图。
+    condition: state.results.step_1_check_vap_config.authentication_profile != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_this_auth_profile
+  target_device: current_device
+  inputs:
+    authentication_profile:
+      name: authentication_profile
+      source_type: step_output
+      source_key: state.results.step_1_check_vap_config.authentication_profile
+      description: 需要检查的认证模板名称
+  selector: null
+  extraction_schema:
+  - name: dot1x_access_profile
+    type: string
+    description: 绑定的 802.1X 接入模板名称
+  - name: portal_access_profile
+    type: string
+    description: 绑定的 Portal 接入模板名称
+  - name: access_domain
+    type: string
+    description: 绑定的接入域名称
+  - name: radius_server_template
+    type: string
+    description: 认证模板下直接绑定的 RADIUS 服务器模板名称（方式一）
+transitions:
+  rules:
+  - description: 802.1X 场景但未绑定 dot1x-access-profile。
+    condition: input.current_hop.auth_type == 'dot1x' and extracted.dot1x_access_profile == ''
+    next_node: CONCLUSION_ACCESS_PROFILE_MISSING
+  - description: Portal 场景但未绑定 portal-access-profile。
+    condition: input.current_hop.auth_type == 'portal' and extracted.portal_access_profile == ''
+    next_node: CONCLUSION_ACCESS_PROFILE_MISSING
+  - description: 接入模板已绑定，继续检查域配置。
+    condition: (extracted.dot1x_access_profile != '' or extracted.portal_access_profile != '')
+    next_node: step_4_check_domain_config
+  - description: 认证类型未知或接入模板均未绑定，需人工介入。
+    condition: True
+    next_node: CONCLUSION_MANUAL_CHECK
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE

@@ -4,16 +4,20 @@
 
 这个仓库用于存放从网络故障处理资料中抽取出来的结构化工作流。
 
-当前已经包含两类结构化 workflow，以及一组尚未完全结构化的原始资料：
+当前已经包含四类结构化 workflow，以及一组尚未完全结构化的原始资料：
 
 - `ping_unreachable`
-  - 已有完整结构化 YAML、评估工具默认输入和现成报告样例
+  - 已由 `HWDA.zip` 中的 `ping` 内容替换，是评估工具默认输入
 - `ap_offline`
   - 已有完整结构化 YAML，可直接通过 CLI 参数传给评估器和 HTML viewer
+- `vlan`
+  - 来自 `HWDA.zip`，包含 VLAN 故障诊断 workflow、步骤 YAML 与原始切片资料
+- `wireless`
+  - 来自 `HWDA.zip`，包含无线认证故障诊断 workflow、步骤 YAML 与原始切片资料
 - `ap_online`
   - 当前只有 `docs/source_materials/ap_online/` 下的 PDF 和分步笔记，尚未补齐 `workflows/ap_online/`
 
-当前工作的重点是持续整理故障处理知识、评估已有 YAML workflow 质量，并逐步把原始资料补全为结构化产物。
+当前工作的重点是持续整理故障处理知识、基于 `extraction_guide.md` 抽象可量化质量指标，评估已有 YAML workflow 质量，并逐步把原始资料补全为结构化产物。
 
 ## 目录结构
 
@@ -21,6 +25,8 @@
 .
 ├── README.md
 ├── todo.md
+├── design.md
+├── extraction_guide.md
 ├── docs/
 │   ├── yaml_evaluation_guide.md
 │   └── source_materials/
@@ -34,9 +40,19 @@
 │   ├── ap_offline/
 │   │   ├── workflow.yaml
 │   │   └── steps/
+│   ├── vlan/
+│   │   ├── workflow.yaml
+│   │   ├── steps/
+│   │   └── vlan_org/
+│   ├── wireless/
+│   │   ├── workflow.yaml
+│   │   ├── steps/
+│   │   └── wireless_org/
 │   └── ping_unreachable/
 │       ├── workflow.yaml
-│       └── steps/
+│       ├── steps/
+│       ├── ping_org/
+│       └── ping_unreachable_steps.pdf
 ├── reports/
 │   ├── yaml_evaluation/
 │   └── workflow_viewer/
@@ -47,9 +63,15 @@
 ## 关键文件
 
 - `workflows/ping_unreachable/workflow.yaml`
-  - Ping 不通故障定位的主 workflow，当前评估器和 viewer 的默认输入
+  - Ping 不通故障定位的主 workflow，当前评估器和 viewer 的默认输入，已替换为 `HWDA.zip` 中的 `ping`
 - `workflows/ping_unreachable/steps/*.yaml`
   - Ping 不通 workflow 的步骤定义
+- `workflows/vlan/workflow.yaml`、`workflows/vlan/steps/*.yaml`
+  - VLAN 故障诊断 workflow 与步骤定义
+- `workflows/wireless/workflow.yaml`、`workflows/wireless/steps/*.yaml`
+  - 无线认证故障诊断 workflow 与步骤定义
+- `extraction_guide.md`
+  - Markdown → YAML 抽取操作手册，后续质量评分指标应以该手册的自检项和转换规则为主要依据
 - `workflows/ap_offline/workflow.yaml`
   - AP 下线故障诊断的主 workflow，覆盖黑名单、静态 IP、License、心跳超时和设备内部异常等路径
 - `workflows/ap_offline/steps/*.yaml`

@@ -1,0 +1,40 @@
+---
+step_id: step_3_check_security_profile
+name: 检查安全模板配置
+content: 进入安全模板视图执行 display this，检查安全策略是否配置为 WPA/WPA2 的 802.1X 认证和加密。仅在 802.1X 认证场景下执行。
+type: diagnosis
+preconditions:
+  rules:
+  - description: 需要 step_1 提取的安全模板名称才能进入安全模板视图。
+    condition: state.results.step_1_check_vap_config.security_profile != ''
+    on_fail:
+      action: skip
+skills:
+- skill_id: skill_display_this_security_profile
+  target_device: current_device
+  inputs:
+    security_profile:
+      name: security_profile
+      source_type: step_output
+      source_key: state.results.step_1_check_vap_config.security_profile
+      description: 需要检查的安全模板名称
+  selector: null
+  extraction_schema:
+  - name: security_policy
+    type: string
+    description: 安全策略配置内容（如 security wpa2 dot1x aes）
+  - name: has_dot1x
+    type: boolean
+    description: 安全策略是否包含 dot1x 相关配置
+transitions:
+  rules:
+  - description: 安全策略未包含 dot1x 认证配置，可能导致 802.1X 认证失败。
+    condition: extracted.has_dot1x == false
+    next_node: CONCLUSION_SECURITY_POLICY_NO_DOT1X
+  - description: 安全策略配置正确，继续检查认证模板。
+    condition: extracted.has_dot1x == true
+    next_node: step_2_check_auth_profile
+  on_error:
+    handler_execution_failed: CONCLUSION_HANDLER_EXECUTION_FAILED
+    cli_command_execution_failed: CONCLUSION_CLI_COMMAND_EXECUTION_FAILED
+    parse_failure: CONCLUSION_PARSE_FAILURE
