@@ -75,6 +75,12 @@
     pre { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; max-width: 100%; font-size: 12px; line-height: 1.5; }
     ul { margin: 10px 0 0; padding-left: 18px; }
     li { margin: 4px 0; }
+    .checks { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+    .checks li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: #fff7ea; min-width: 0; }
+    .checks .rule-text { min-width: 0; overflow-wrap: anywhere; }
+    .checks .tag { margin-top: 1px; }
+    .note { margin-top: 12px; color: var(--muted); font-size: 14px; }
+    .rule-detail-grid { margin-top: 16px; }
     table { width: 100%; table-layout: fixed; border-collapse: collapse; overflow: hidden; border-radius: 16px; background: var(--paper); }
     th, td { border-bottom: 1px solid var(--line); padding: 12px 14px; text-align: left; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
     th { background: #efe2cf; font-size: 13px; color: #4d4031; }
@@ -126,7 +132,7 @@
   </section>
 
   <section>
-    <h2>6 个维度，用人话解释</h2>
+    <h2>6 个维度</h2>
     <div class="grid grid-3">
       <article class="card">
         <div class="kicker">01</div><h3>输入 Schema 完整性</h3>
@@ -171,6 +177,107 @@ extraction_schema: link_type</pre></div><div class="mini bad"><span class="tag b
     </div>
   </section>
 
+  <section>
+    <h2>具体检查与扣分规则</h2>
+    <p class="muted">下面是 <code>tools/yaml_quality/scorer.py</code> 当前真正执行的规则。每条规则不通过，就在对应维度里扣掉标注的权重；同类规则会按对象重复计算，例如每个 step、每个 skill、每条 transition rule 都会单独检查。</p>
+    <div class="grid grid-2 rule-detail-grid">
+      <article class="card">
+        <div class="kicker">01 · Schema</div>
+        <h3>输入 Schema 完整性</h3>
+        <p class="muted">看 <code>workflow.yaml</code> 是否把流程输入说清楚，尤其是全局事实 <code>facts</code> 和当前跳点 <code>current_hop</code>。</p>
+        <ul class="checks">
+          <li><span class="tag warn">3</span><span class="rule-text">缺少 <code>input_schema</code> 里的 <code>facts</code> 对象扣 3；缺少 <code>current_hop</code> 对象也扣 3。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>current_hop.properties</code> 必须包含 <code>hop_index</code>、<code>current_device</code>、<code>path_state</code>，每缺一个扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">这三个基线字段存在后，还要分别检查 <code>required: true</code> 和有效 <code>description</code>，每项不合格扣 1。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>facts</code> 与 <code>current_hop</code> 的 properties 不能都为空；没有任何可用输入字段扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">每个输入字段都要有 <code>type</code>、<code>required</code> 标记和有效 <code>description</code>，每缺一项扣 1。<code>TODO</code>、<code>待填</code>、<code>未填</code> 这类占位文字不算有效说明。</span></li>
+        </ul>
+        <p class="note">例：只写了 <code>vlan_id</code>，但没写 <code>current_device</code>，机器不知道当前在哪台设备上判断，会扣基线字段分。</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">02 · Topology</div>
+        <h3>骨架拓扑一致性</h3>
+        <p class="muted">看流程图骨架是否闭合：声明了哪些步骤、从哪里开始、是否能走到有效结论。</p>
+        <ul class="checks">
+          <li><span class="tag bad">5</span><span class="rule-text"><code>workflow.steps</code> 为空扣 5；steps 里声明了某个 step，但 <code>steps/</code> 下没有对应文件也扣 5。</span></li>
+          <li><span class="tag warn">3</span><span class="rule-text"><code>steps/</code> 目录里出现未在 <code>workflow.steps</code> 声明的孤儿 step 文件扣 3。</span></li>
+          <li><span class="tag bad">4</span><span class="rule-text"><code>start_node</code> 为空扣 4；<code>conclusions</code> 为空扣 4。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text">每个 <code>start_node</code> 必须指向已声明 step；指向不存在的 step，每个扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">如果 <code>start_node</code> 用对象写法，例如包含 <code>step_id</code>，则还要有有效 <code>description</code>，缺失扣 1。</span></li>
+          <li><span class="tag warn">3</span><span class="rule-text"><code>workflow.steps</code> 里重复声明同一个 step 扣 3。</span></li>
+        </ul>
+        <p class="note">例：<code>start_node: step_1_check_vlan</code>，但 steps 列表没有这个 step，流程一开始就断，会扣分。</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">03 · Step</div>
+        <h3>Step 内容完整性</h3>
+        <p class="muted">看每个 step YAML 是否像一张能执行的任务卡：身份、说明、类型、前置条件都清楚。</p>
+        <ul class="checks">
+          <li><span class="tag warn">3</span><span class="rule-text">step 文件能解析但顶层不是 YAML 字典扣 3；这种文件无法作为标准 step 使用。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text">文件名去掉 <code>.yaml</code> 后必须等于内部 <code>step_id</code>；不一致扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text"><code>step_id</code> 必须匹配 <code>step_数字_语义名</code>，例如 <code>step_1_check_vlan</code>；不匹配扣 1。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">每个 step 都要有有效 <code>name</code>、有效 <code>content</code>、合法 <code>type</code>，每项不合格扣 1。合法 type 只有 <code>diagnosis</code> 和 <code>configuration</code>。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">同一 step 内多个 skill 的 <code>result_key</code> 不能重复；重复会让抽取结果互相覆盖，扣 1。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">每条 <code>preconditions.rules</code> 都要有有效 <code>description</code> 和有效 <code>condition</code>，每缺一项扣 1。</span></li>
+        </ul>
+        <p class="note">例：文件叫 <code>step_2_check_acl.yaml</code>，里面写 <code>step_id: step_3_check_acl</code>，会扣文件名与 step_id 不一致。</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">04 · Skill</div>
+        <h3>Skill 与抽取字段</h3>
+        <p class="muted">看诊断步骤是否说明“怎么查、查哪里、从输出里抽什么”。</p>
+        <ul class="checks">
+          <li><span class="tag warn">3</span><span class="rule-text"><code>diagnosis</code> 类型 step 没有 <code>skills</code> 扣 3；<code>skills</code> 列表里的条目不是字典也扣 3。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text">每个 skill 要有有效 <code>skill_id</code>，缺失扣 2；<code>skill_id</code> 不以 <code>skill_</code> 开头再扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">如果 <code>skill_id</code> 形如 <code>skill_*</code>，就必须能在 <code>user_skills/**/*.yaml</code> 找到同名定义；找不到扣 1。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text"><code>inputs</code> 可以省略，但写了就必须是字典；不是字典扣 1。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>selector</code> 不能为空或占位；它说明从命令输出中选择哪部分文本，不合格扣 2。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>extraction_schema</code> 不能为空；但 <code>configuration</code> step 允许没有抽取字段。诊断 step 缺抽取字段扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text"><code>extraction_schema</code> 每个字段必须是字典，并包含有效 <code>name</code>、<code>type</code>、有效 <code>description</code>；每项不合格扣 1。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">字段名不能把 <code>[custom]</code> 写进 <code>name</code>，例如 <code>[custom]link_type</code> 会扣 1；代码只把它当错误提示，不鼓励这种写法。</span></li>
+        </ul>
+        <p class="note">例：transition 里要判断 <code>extracted.port.link_type</code>，但 skill 没声明 <code>link_type</code> 字段，后面的条件也会被扣分。</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">05 · Condition</div>
+        <h3>条件表达式质量</h3>
+        <p class="muted">看每条分支规则是否可判断、引用的字段是否真实存在、下一步是否有效。</p>
+        <ul class="checks">
+          <li><span class="tag warn">2</span><span class="rule-text"><code>transitions.rules</code> 里的条目必须是字典；不是字典扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">每条 transition rule 要有有效 <code>description</code>；缺失扣 1。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>condition</code> 不能为空或占位；不合格扣 2。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>next_node</code> 必须指向已声明 step 或 conclusion；无效目标扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text"><code>condition: true</code> 被视为偷懒兜底写法；每条扣 1，应该改成明确条件或放进错误兜底。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>extracted.result_key.field</code> 必须引用当前 step 某个 skill 的 <code>result_key</code> 和已声明抽取字段；不存在扣 2。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>extracted.field</code> 这种简写也要能匹配当前 step 任意抽取字段；匹配不到扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text"><code>input.facts.xxx</code> 或 <code>input.current_hop.xxx</code> 必须在 <code>input_schema</code> 中声明；未声明扣 1。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>state.results.step_xxx.field</code> 或 <code>state.step_xxx.field</code> 引用的 step 必须存在；不存在扣 2。</span></li>
+        </ul>
+        <p class="note">例：写了 <code>extracted.acl_result.hit_count &gt; 0</code>，但当前 step 没有 <code>result_key: acl_result</code> 或字段 <code>hit_count</code>，会扣引用错误。</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">06 · Fallback</div>
+        <h3>错误兜底与可执行性</h3>
+        <p class="muted">看 YAML 能否解析、异常是否有出口、结论是否能指导人继续处理。</p>
+        <ul class="checks">
+          <li><span class="tag bad">5</span><span class="rule-text"><code>workflow.yaml</code> 无法解析扣 5；解析后顶层不是字典也扣 5。每个 step YAML 无法解析也扣 5。</span></li>
+          <li><span class="tag warn">3</span><span class="rule-text">每个 step 的 <code>transitions.on_error</code> 必须同时包含 <code>handler_execution_failed</code>、<code>cli_command_execution_failed</code>、<code>parse_failure</code>；缺任意标准兜底扣 3。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">已经写出的每个 <code>on_error</code> 目标必须指向有效 step 或 conclusion；目标无效扣 1。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text">不能保留旧字段 <code>transitions.default</code>；存在就扣 2。</span></li>
+          <li><span class="tag warn">2</span><span class="rule-text"><code>conclusions</code> 中每个结论必须是字典；不是字典扣 2。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">每个 conclusion 的 <code>level</code> 必须是 <code>info</code>、<code>warning</code>、<code>error</code>、<code>critical</code> 之一；不合法扣 1。</span></li>
+          <li><span class="tag good">1</span><span class="rule-text">每个 conclusion 要有有效 <code>message</code> 和有效 <code>suggestion</code>，每缺一项扣 1。</span></li>
+        </ul>
+        <p class="note">例：命令执行失败时没有 <code>cli_command_execution_failed</code> 出口，自动执行就不知道跳到哪个结论，会扣兜底分。</p>
+      </article>
+    </div>
+  </section>
+
   <section class="card">
     <h2>权重怎么理解</h2>
     <table>
@@ -204,7 +311,7 @@ extraction_schema: link_type</pre></div><div class="mini bad"><span class="tag b
     </div>
   </section>
 
-  <p class="footer">实现位置：<code>tools/yaml_quality/scorer.py</code>。本页是给人看的解释版，真正打分以代码和 <code>extraction_guided.md</code> 为准。</p>
+  <p class="footer">实现位置：<code>tools/yaml_quality/scorer.py</code>。真正打分以代码和 <code>extraction_guided.md</code> 为准。</p>
 </main>
 </body>
 </html>
