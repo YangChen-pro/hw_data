@@ -11,12 +11,12 @@
 - [x] 节点问题态与边的跳转语义分开表达
 - [x] 顶部起点列表已折叠为数量概览
 - [x] 评估报告已经输出为 `report.md / report.json / issues.csv`
-- [x] 已基于 `extraction_guide.md` 抽象可量化 YAML 质量指标，并用图表展示各 workflow 得分
-- [ ] 下一步：按质量报告中的扣分项补齐 `user_skills`、`transitions.default` 和空 `condition`
+- [x] 已基于 `extraction_guided.md` 抽象可量化 YAML 质量指标，并用图表展示各 workflow 得分
+- [ ] 下一步：按质量报告中的扣分项补齐 `user_skills`、空 `condition`，并清理旧 YAML 中残留的 `transitions.default`
 
 ## 目标
 
-评估 `workflows/` 下现有 YAML 工作流的结构质量，在继续抽取或清理之前先识别出明显问题，并逐步把 `extraction_guide.md` 中的抽取规则转化为可量化评分。
+评估 `workflows/` 下现有 YAML 工作流的结构质量，在继续抽取或清理之前先识别出明显问题，并逐步把 `extraction_guided.md` 中的抽取规则转化为可量化评分。
 
 ## 评估文件
 
@@ -33,7 +33,7 @@
 2. 每个 `condition` 使用的字段和逻辑都合法。
 3. 每个 `inputs` 和 `selector` 都能被解析。
 4. 每个 `extraction_schema` 都与预期 skill 输出匹配。
-5. `input_schema`、`start_node`、`step` 拆分、`conclusions`、`skills` 与 `transitions` 符合 `extraction_guide.md` 的 Phase 1~4 自检规则。
+5. `input_schema`、`start_node`、`step` 拆分、`conclusions`、`skills` 与 `transitions` 符合 `extraction_guided.md` 的 Phase 1~4 自检规则。
 6. 后续图表需要使用 Matplotlib/plt，并配置中文字体；专业术语可保留英文。
 
 ## 交付结果

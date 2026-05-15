@@ -18,7 +18,7 @@ def resolve_path(repo_root: Path, raw_path: str) -> Path:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="基于 extraction_guide.md 生成 YAML workflow 质量评分和图表。")
+    parser = argparse.ArgumentParser(description="基于 extraction_guided.md 生成 YAML workflow 质量评分和图表。")
     parser.add_argument("--workflows-root", default="workflows", help="包含多个 workflow 目录的根目录")
     parser.add_argument("--workflow", default="", help="单个 workflow.yaml 路径；为空时扫描 workflows-root")
     parser.add_argument("--steps-dir", default="", help="单个 workflow 的 steps 目录，配合 --workflow 使用")

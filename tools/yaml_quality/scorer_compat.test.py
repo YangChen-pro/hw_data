@@ -69,7 +69,7 @@ name: 入口检查
 content: 检查入口状态
 type: diagnosis
 skills:
-  - skill_id: "display interface"
+  - skill_id: skill_display_interface
     inputs: {}
     selector: 按接口定位状态行
     extraction_schema:
@@ -85,7 +85,27 @@ transitions:
     handler_execution_failed: CONCLUSION_MANUAL_CHECK
     cli_command_execution_failed: CONCLUSION_MANUAL_CHECK
     parse_failure: CONCLUSION_MANUAL_CHECK
-  default: CONCLUSION_MANUAL_CHECK
+""".lstrip(),
+            encoding="utf-8",
+        )
+        user_skills = root / "user_skills"
+        user_skills.mkdir()
+        (user_skills / "skill_display_interface.yaml").write_text(
+            """
+skill_id: skill_display_interface
+description: 执行 display interface 命令
+action:
+  type: cli_command
+  commands: display interface
+parser:
+  method: llm
+  data_type: command
+default_schema:
+  type: object
+  properties:
+    current_state:
+      type: string
+      description: 接口状态
 """.lstrip(),
             encoding="utf-8",
         )

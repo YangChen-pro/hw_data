@@ -2,30 +2,21 @@
 
 from __future__ import annotations
 
-import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from .constants import (
+    EXTRACTED_REF_RE,
+    GENERIC_TEXT_RE,
+    GUIDE_DIMENSIONS,
+    INPUT_REF_RE,
+    STATE_REF_RE,
+    STEP_ID_RE,
+)
 from .models import DimensionScore, WorkflowQuality
-
-
-GUIDE_DIMENSIONS = [
-    ("schema", "输入 Schema 完整性"),
-    ("topology", "骨架拓扑一致性"),
-    ("step", "Step 内容完整性"),
-    ("skill", "Skill 与抽取字段"),
-    ("condition", "条件表达式质量"),
-    ("fallback", "错误兜底与可执行性"),
-]
-
-EXTRACTED_REF_RE = re.compile(r"\bextracted\.([A-Za-z0-9_]+)(?:\.([A-Za-z0-9_]+))?\b")
-INPUT_REF_RE = re.compile(r"\binput\.(facts|current_hop)\.([A-Za-z0-9_]+)\b")
-STATE_REF_RE = re.compile(r"\bstate(?:\.results)?\.(step_[A-Za-z0-9_]+)\.([A-Za-z0-9_]+)\b")
-STEP_ID_RE = re.compile(r"^step_[0-9]+[a-z]?_[a-z0-9_]+$")
-GENERIC_TEXT_RE = re.compile(r"待填|待完善|TODO|__NEED_FILL__|未填")
 
 
 class ScoreBucket:
@@ -206,7 +197,7 @@ def normalize_field_name(name: str) -> str:
 
 
 def score_schema(workflow: dict[str, Any], bucket: ScoreBucket) -> None:
-    """Score extraction guide Phase 1 requirements."""
+    """Score extraction_guided.md Phase 1 requirements."""
     schema = as_mapping_by_name(workflow.get("input_schema"))
     facts = schema.get("facts", {})
     current_hop = schema.get("current_hop", {})
@@ -287,6 +278,11 @@ def score_skills(step_docs: dict[str, tuple[Path, dict[str, Any]]], workflow_dir
                 continue
             skill_id = skill.get("skill_id")
             bucket.add(is_nonempty_text(skill_id), f"{step_id} skills[{skill_index}] 缺少 skill_id", 2)
+            bucket.add(
+                isinstance(skill_id, str) and skill_id.startswith("skill_"),
+                f"{step_id} {skill_id} 不符合 skill_* 命名规范",
+                2,
+            )
             if isinstance(skill_id, str) and skill_id.startswith("skill_"):
                 bucket.add(skill_id in skill_asset_names, f"{step_id} 引用的 {skill_id} 缺少 user_skills 定义")
 
@@ -387,8 +383,7 @@ def score_fallbacks(
         bucket.add(required_errors <= set(on_error), f"{step_id} on_error 缺少标准错误兜底", 3)
         for key in required_errors & set(on_error):
             bucket.add(on_error[key] in valid_targets, f"{step_id} on_error.{key} 目标无效")
-        default = target_ref(transitions.get("default"))
-        bucket.add(bool(default and default in valid_targets), f"{step_id} transitions.default 缺失或无效", 2)
+        bucket.add("default" not in transitions, f"{step_id} 存在已废弃的 transitions.default", 2)
 
     for conclusion_id, item in conclusions.items():
         if not isinstance(item, dict):

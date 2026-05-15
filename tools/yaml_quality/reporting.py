@@ -12,12 +12,12 @@ from .models import WorkflowQuality
 
 
 METRIC_EXPLANATIONS = [
-    ("输入 Schema 完整性", "对应 extraction_guide Phase 1：facts/current_hop、必填基线字段、字段 type/required/description。"),
+    ("输入 Schema 完整性", "对应 extraction_guided.md Phase 1：facts/current_hop、必填基线字段、字段 type/required/description。"),
     ("骨架拓扑一致性", "对应 Phase 2：start_node、steps、step 文件、conclusions 和重复声明。"),
     ("Step 内容完整性", "对应 Phase 2/3：step_id、文件名、name、content、type、preconditions 与 result_key。"),
     ("Skill 与抽取字段", "对应 Phase 3/4：skill_id、user_skills、inputs、selector、extraction_schema 与 [custom] 约定。"),
     ("条件表达式质量", "对应 Phase 3：condition、next_node、extracted/input/state 引用合法性。"),
-    ("错误兜底与可执行性", "对应 Phase 4：on_error、default、conclusion level/message/suggestion。"),
+    ("错误兜底与可执行性", "对应 Phase 4：on_error、系统 conclusion、conclusion level/message/suggestion、禁止 default。"),
 ]
 
 

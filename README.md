@@ -17,7 +17,7 @@
 - `ap_online`
   - 当前只有 `docs/source_materials/ap_online/` 下的 PDF 和分步笔记，尚未补齐 `workflows/ap_online/`
 
-当前工作的重点是持续整理故障处理知识、基于 `extraction_guide.md` 抽象可量化质量指标，评估已有 YAML workflow 质量，并逐步把原始资料补全为结构化产物。
+当前工作的重点是持续整理故障处理知识、基于 `extraction_guided.md` 抽象可量化质量指标，评估已有 YAML workflow 质量，并逐步把原始资料补全为结构化产物。
 
 ## 目录结构
 
@@ -26,7 +26,7 @@
 ├── README.md
 ├── todo.md
 ├── design.md
-├── extraction_guide.md
+├── extraction_guided.md
 ├── docs/
 │   ├── yaml_evaluation_guide.md
 │   └── source_materials/
@@ -70,7 +70,7 @@
   - VLAN 故障诊断 workflow 与步骤定义
 - `workflows/wireless/workflow.yaml`、`workflows/wireless/steps/*.yaml`
   - 无线认证故障诊断 workflow 与步骤定义
-- `extraction_guide.md`
+- `extraction_guided.md`
   - Markdown → YAML 抽取操作手册，后续质量评分指标应以该手册的自检项和转换规则为主要依据
 - `workflows/ap_offline/workflow.yaml`
   - AP 下线故障诊断的主 workflow，覆盖黑名单、静态 IP、License、心跳超时和设备内部异常等路径
@@ -136,7 +136,7 @@
 - `issues.csv`：扁平问题清单
 - `manifest.json`：本次生成的文件清单
 
-如果要按 `extraction_guide.md` 的抽取规则生成质量评分和中文图表：
+如果要按 `extraction_guided.md` 的抽取规则生成质量评分和中文图表：
 
 - `tools/yaml_quality_score.py`
 - 运行方式：`bash tools/run_quality_score_example.sh`

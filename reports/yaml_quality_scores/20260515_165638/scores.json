@@ -1,0 +1,368 @@
+{
+  "generated_at": "2026-05-15T16:56:39",
+  "metric_explanations": [
+    {
+      "name": "输入 Schema 完整性",
+      "basis": "对应 extraction_guided.md Phase 1：facts/current_hop、必填基线字段、字段 type/required/description。"
+    },
+    {
+      "name": "骨架拓扑一致性",
+      "basis": "对应 Phase 2：start_node、steps、step 文件、conclusions 和重复声明。"
+    },
+    {
+      "name": "Step 内容完整性",
+      "basis": "对应 Phase 2/3：step_id、文件名、name、content、type、preconditions 与 result_key。"
+    },
+    {
+      "name": "Skill 与抽取字段",
+      "basis": "对应 Phase 3/4：skill_id、user_skills、inputs、selector、extraction_schema 与 [custom] 约定。"
+    },
+    {
+      "name": "条件表达式质量",
+      "basis": "对应 Phase 3：condition、next_node、extracted/input/state 引用合法性。"
+    },
+    {
+      "name": "错误兜底与可执行性",
+      "basis": "对应 Phase 4：on_error、系统 conclusion、conclusion level/message/suggestion、禁止 default。"
+    }
+  ],
+  "charts": {
+    "overall_bar": "/Users/yangchen/Desktop/hw_data/reports/yaml_quality_scores/20260515_165638/overall_score_bar.png",
+    "dimension_heatmap": "/Users/yangchen/Desktop/hw_data/reports/yaml_quality_scores/20260515_165638/dimension_score_heatmap.png",
+    "radar": "/Users/yangchen/Desktop/hw_data/reports/yaml_quality_scores/20260515_165638/dimension_radar.png",
+    "font": "STHeiti"
+  },
+  "workflows": [
+    {
+      "workflow": "ap_offline",
+      "workflow_path": "/Users/yangchen/Desktop/hw_data/workflows/ap_offline/workflow.yaml",
+      "steps_dir": "/Users/yangchen/Desktop/hw_data/workflows/ap_offline/steps",
+      "overall_score": 76.81,
+      "dimensions": [
+        {
+          "key": "schema",
+          "name": "输入 Schema 完整性",
+          "score": 0.0,
+          "passed": 0,
+          "total": 14,
+          "findings": [
+            "缺少 facts input_schema 对象",
+            "缺少 current_hop input_schema 对象",
+            "current_hop 缺少必填基线字段 hop_index",
+            "current_hop 缺少必填基线字段 current_device",
+            "current_hop 缺少必填基线字段 path_state",
+            "input_schema properties 为空"
+          ]
+        },
+        {
+          "key": "topology",
+          "name": "骨架拓扑一致性",
+          "score": 100.0,
+          "passed": 26,
+          "total": 26,
+          "findings": []
+        },
+        {
+          "key": "step",
+          "name": "Step 内容完整性",
+          "score": 97.8,
+          "passed": 89,
+          "total": 91,
+          "findings": [
+            "step_02_remove_blacklist type 无效",
+            "step_03_fix_static_ip type 无效"
+          ]
+        },
+        {
+          "key": "skill",
+          "name": "Skill 与抽取字段",
+          "score": 79.06,
+          "passed": 502,
+          "total": 635,
+          "findings": [
+            "step_01_check_offline_reason display ap offline-record all 不符合 skill_* 命名规范",
+            "step_01_check_offline_reason display ap offline-record all selector 为空或占位",
+            "step_01_check_offline_reason [custom]reason_category 不应把 [custom] 放在 name",
+            "step_02_remove_blacklist display ap blacklist 不符合 skill_* 命名规范",
+            "step_02_remove_blacklist display ap blacklist selector 为空或占位",
+            "step_02_remove_blacklist undo ap blacklist mac ap-mac 不符合 skill_* 命名规范",
+            "step_02_remove_blacklist undo ap blacklist mac ap-mac selector 为空或占位",
+            "step_02_remove_blacklist [custom]remove_success 不应把 [custom] 放在 name"
+          ]
+        },
+        {
+          "key": "condition",
+          "name": "条件表达式质量",
+          "score": 96.69,
+          "passed": 760,
+          "total": 786,
+          "findings": [
+            "step_01_check_offline_reason rule[57] condition 为空",
+            "step_02_remove_blacklist rule[2] condition 为空",
+            "step_03_fix_static_ip rule[2] condition 为空",
+            "step_04_check_license rule[0] condition 为空",
+            "step_05_check_power_cable rule[2] condition 为空",
+            "step_06_check_network_packet_loss rule[3] condition 为空",
+            "step_07_check_cpu_defend rule[2] condition 为空",
+            "step_08_check_cpu_overload rule[2] condition 为空"
+          ]
+        },
+        {
+          "key": "fallback",
+          "name": "错误兜底与可执行性",
+          "score": 87.32,
+          "passed": 179,
+          "total": 205,
+          "findings": [
+            "step_01_check_offline_reason 存在已废弃的 transitions.default",
+            "step_02_remove_blacklist 存在已废弃的 transitions.default",
+            "step_03_fix_static_ip 存在已废弃的 transitions.default",
+            "step_04_check_license 存在已废弃的 transitions.default",
+            "step_05_check_power_cable 存在已废弃的 transitions.default",
+            "step_06_check_network_packet_loss 存在已废弃的 transitions.default",
+            "step_07_check_cpu_defend 存在已废弃的 transitions.default",
+            "step_08_check_cpu_overload 存在已废弃的 transitions.default"
+          ]
+        }
+      ],
+      "facts": {
+        "workflow_step_count": 13,
+        "step_file_count": 13,
+        "conclusion_count": 32,
+        "missing_step_files": [],
+        "orphan_step_files": []
+      }
+    },
+    {
+      "workflow": "ping_unreachable",
+      "workflow_path": "/Users/yangchen/Desktop/hw_data/workflows/ping_unreachable/workflow.yaml",
+      "steps_dir": "/Users/yangchen/Desktop/hw_data/workflows/ping_unreachable/steps",
+      "overall_score": 98.6,
+      "dimensions": [
+        {
+          "key": "schema",
+          "name": "输入 Schema 完整性",
+          "score": 100.0,
+          "passed": 65,
+          "total": 65,
+          "findings": []
+        },
+        {
+          "key": "topology",
+          "name": "骨架拓扑一致性",
+          "score": 100.0,
+          "passed": 45,
+          "total": 45,
+          "findings": []
+        },
+        {
+          "key": "step",
+          "name": "Step 内容完整性",
+          "score": 100.0,
+          "passed": 144,
+          "total": 144,
+          "findings": []
+        },
+        {
+          "key": "skill",
+          "name": "Skill 与抽取字段",
+          "score": 92.18,
+          "passed": 448,
+          "total": 486,
+          "findings": [
+            "step_10_check_redirect_acl_detail 引用的 skill_display_acl 缺少 user_skills 定义",
+            "step_11_check_arp_learning 引用的 skill_display_arp 缺少 user_skills 定义",
+            "step_12_check_mac_outbound 引用的 skill_display_mac_address 缺少 user_skills 定义",
+            "step_13_check_cpu_defend_policy 引用的 skill_display_cpu_defend_policy 缺少 user_skills 定义",
+            "step_14_check_cpu_defend_blacklist 引用的 skill_display_cpu_defend_policy 缺少 user_skills 定义",
+            "step_15_check_blacklist_acl 引用的 skill_display_acl 缺少 user_skills 定义",
+            "step_16_check_icmp_statistics_local 引用的 skill_display_icmp_statistics 缺少 user_skills 定义",
+            "step_16_check_icmp_statistics_local skill_display_icmp_statistics selector 为空或占位"
+          ]
+        },
+        {
+          "key": "condition",
+          "name": "条件表达式质量",
+          "score": 99.4,
+          "passed": 333,
+          "total": 335,
+          "findings": [
+            "step_18_check_icmp_cpcar_statistics rule[1] condition 为空"
+          ]
+        },
+        {
+          "key": "fallback",
+          "name": "错误兜底与可执行性",
+          "score": 100.0,
+          "passed": 212,
+          "total": 212,
+          "findings": []
+        }
+      ],
+      "facts": {
+        "workflow_step_count": 18,
+        "step_file_count": 18,
+        "conclusion_count": 21,
+        "missing_step_files": [],
+        "orphan_step_files": []
+      }
+    },
+    {
+      "workflow": "vlan",
+      "workflow_path": "/Users/yangchen/Desktop/hw_data/workflows/vlan/workflow.yaml",
+      "steps_dir": "/Users/yangchen/Desktop/hw_data/workflows/vlan/steps",
+      "overall_score": 96.95,
+      "dimensions": [
+        {
+          "key": "schema",
+          "name": "输入 Schema 完整性",
+          "score": 100.0,
+          "passed": 47,
+          "total": 47,
+          "findings": []
+        },
+        {
+          "key": "topology",
+          "name": "骨架拓扑一致性",
+          "score": 100.0,
+          "passed": 30,
+          "total": 30,
+          "findings": []
+        },
+        {
+          "key": "step",
+          "name": "Step 内容完整性",
+          "score": 100.0,
+          "passed": 167,
+          "total": 167,
+          "findings": []
+        },
+        {
+          "key": "skill",
+          "name": "Skill 与抽取字段",
+          "score": 85.56,
+          "passed": 320,
+          "total": 374,
+          "findings": [
+            "step_0_check_interface_status 引用的 skill_display_interface 缺少 user_skills 定义",
+            "step_10_check_interconnect_vlan_pass 引用的 skill_display_port_vlan 缺少 user_skills 定义",
+            "step_10a_config_interconnect_access_vlan 引用的 skill_port_link_type_access 缺少 user_skills 定义",
+            "step_10a_config_interconnect_access_vlan skill_port_link_type_access selector 为空或占位",
+            "step_10a_config_interconnect_access_vlan 引用的 skill_port_default_vlan 缺少 user_skills 定义",
+            "step_10a_config_interconnect_access_vlan skill_port_default_vlan selector 为空或占位",
+            "step_10b_config_interconnect_trunk_vlan 引用的 skill_port_link_type_trunk 缺少 user_skills 定义",
+            "step_10b_config_interconnect_trunk_vlan skill_port_link_type_trunk selector 为空或占位"
+          ]
+        },
+        {
+          "key": "condition",
+          "name": "条件表达式质量",
+          "score": 96.13,
+          "passed": 348,
+          "total": 362,
+          "findings": [
+            "step_10a_config_interconnect_access_vlan rule[0] condition 为空",
+            "step_10b_config_interconnect_trunk_vlan rule[0] condition 为空",
+            "step_10c_config_interconnect_hybrid_vlan rule[0] condition 为空",
+            "step_4_create_vlan rule[0] condition 为空",
+            "step_7_config_access_port_vlan rule[0] condition 为空",
+            "step_8_config_trunk_port_vlan rule[0] condition 为空",
+            "step_9_config_hybrid_port_vlan rule[0] condition 为空"
+          ]
+        },
+        {
+          "key": "fallback",
+          "name": "错误兜底与可执行性",
+          "score": 100.0,
+          "passed": 193,
+          "total": 193,
+          "findings": []
+        }
+      ],
+      "facts": {
+        "workflow_step_count": 19,
+        "step_file_count": 19,
+        "conclusion_count": 12,
+        "missing_step_files": [],
+        "orphan_step_files": []
+      }
+    },
+    {
+      "workflow": "wireless",
+      "workflow_path": "/Users/yangchen/Desktop/hw_data/workflows/wireless/workflow.yaml",
+      "steps_dir": "/Users/yangchen/Desktop/hw_data/workflows/wireless/steps",
+      "overall_score": 97.77,
+      "dimensions": [
+        {
+          "key": "schema",
+          "name": "输入 Schema 完整性",
+          "score": 100.0,
+          "passed": 47,
+          "total": 47,
+          "findings": []
+        },
+        {
+          "key": "topology",
+          "name": "骨架拓扑一致性",
+          "score": 100.0,
+          "passed": 48,
+          "total": 48,
+          "findings": []
+        },
+        {
+          "key": "step",
+          "name": "Step 内容完整性",
+          "score": 100.0,
+          "passed": 127,
+          "total": 127,
+          "findings": []
+        },
+        {
+          "key": "skill",
+          "name": "Skill 与抽取字段",
+          "score": 89.34,
+          "passed": 310,
+          "total": 347,
+          "findings": [
+            "step_0_check_vap_profile 引用的 skill_display_vap_profile_all 缺少 user_skills 定义",
+            "step_10_check_radius_server_item 引用的 skill_display_radius_server_item 缺少 user_skills 定义",
+            "step_10_check_radius_server_item skill_display_radius_server_item selector 为空或占位",
+            "step_11_check_web_auth_server_config 引用的 skill_display_web_auth_server_configuration 缺少 user_skills 定义",
+            "step_11_check_web_auth_server_config skill_display_web_auth_server_configuration selector 为空或占位",
+            "step_12_check_portal_server_template 引用的 skill_display_this_web_auth_server 缺少 user_skills 定义",
+            "step_12_check_portal_server_template skill_display_this_web_auth_server selector 为空或占位",
+            "step_13_check_free_rule 引用的 skill_display_free_rule_template_configuration 缺少 user_skills 定义"
+          ]
+        },
+        {
+          "key": "condition",
+          "name": "条件表达式质量",
+          "score": 97.3,
+          "passed": 288,
+          "total": 296,
+          "findings": [
+            "step_11_check_web_auth_server_config rule[2] condition 为空",
+            "step_2_check_auth_profile rule[3] condition 为空",
+            "step_8_check_radius_global_config rule[0] condition 为空",
+            "step_9_check_radius_template rule[1] condition 为空"
+          ]
+        },
+        {
+          "key": "fallback",
+          "name": "错误兜底与可执行性",
+          "score": 100.0,
+          "passed": 206,
+          "total": 206,
+          "findings": []
+        }
+      ],
+      "facts": {
+        "workflow_step_count": 15,
+        "step_file_count": 15,
+        "conclusion_count": 27,
+        "missing_step_files": [],
+        "orphan_step_files": []
+      }
+    }
+  ]
+}
