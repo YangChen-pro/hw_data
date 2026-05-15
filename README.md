@@ -136,6 +136,20 @@
 - `issues.csv`：扁平问题清单
 - `manifest.json`：本次生成的文件清单
 
+如果要按 `extraction_guide.md` 的抽取规则生成质量评分和中文图表：
+
+- `tools/yaml_quality_score.py`
+- 运行方式：`bash tools/run_quality_score_example.sh`
+- 默认输出：`reports/yaml_quality_scores/<时间戳>/`
+- 默认输入：扫描 `workflows/*/workflow.yaml`
+- 输出内容：
+  - `scores.csv`：各 workflow 总分和分维度得分
+  - `scores.json`：结构化评分详情和扣分项
+  - `report.md`：人工阅读版评分报告
+  - `overall_score_bar.png`：质量总分柱状图
+  - `dimension_score_heatmap.png`：分维度热力图
+  - `dimension_radar.png`：分维度雷达图
+
 如果你先看 workflow 结构，再看评估结果，建议顺序是：
 
 1. 先打开 workflow HTML 查看器，理解流程跳转和分组范围

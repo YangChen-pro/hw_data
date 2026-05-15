@@ -1,6 +1,6 @@
 # 工具说明
 
-这个目录放的是 YAML 评估器、workflow HTML 查看器和它们的运行入口。
+这个目录放的是 YAML 评估器、质量评分图表、workflow HTML 查看器和它们的运行入口。
 
 ## 怎么运行
 
@@ -48,6 +48,26 @@ bash tools/run_viewer_example.sh \
 
 两个脚本都会使用 `conda` 环境 `claw` 执行对应 Python 入口。
 
+如果你想基于 `extraction_guide.md` 的规则给所有 workflow 生成质量评分和中文图表：
+
+```bash
+bash tools/run_quality_score_example.sh
+```
+
+这条命令默认扫描 `workflows/*/workflow.yaml`，输出到：
+
+```text
+reports/yaml_quality_scores/<时间戳>/
+```
+
+如果只评估单个 workflow，可以这样运行：
+
+```bash
+bash tools/run_quality_score_example.sh \
+  --workflow workflows/ping_unreachable/workflow.yaml \
+  --steps-dir workflows/ping_unreachable/steps
+```
+
 ## 输出是什么
 
 运行后会生成一个新的报告目录，默认形如：
@@ -89,6 +109,24 @@ reports/workflow_viewer/ap_offline/<时间戳>/index.html
 ```
 
 它会把 workflow 里的跳转关系渲染成一张可点击、可聚焦的单页流程图。节点和边都可以点开看详情，若仓库里已有最近一次评估报告，还会自动给节点附加问题徽标。
+
+质量评分工具默认输出：
+
+- `scores.csv`：各 workflow 总分和分维度得分
+- `scores.json`：结构化评分详情和扣分项
+- `report.md`：人工阅读版评分报告
+- `overall_score_bar.png`：质量总分柱状图
+- `dimension_score_heatmap.png`：分维度热力图
+- `dimension_radar.png`：分维度雷达图
+
+当前评分维度直接对应 `extraction_guide.md`：
+
+- 输入 Schema 完整性
+- 骨架拓扑一致性
+- Step 内容完整性
+- Skill 与抽取字段
+- 条件表达式质量
+- 错误兜底与可执行性
 
 当前 viewer 只保留最少必要的交互：
 

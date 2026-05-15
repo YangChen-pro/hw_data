@@ -11,7 +11,8 @@
 - [x] 节点问题态与边的跳转语义分开表达
 - [x] 顶部起点列表已折叠为数量概览
 - [x] 评估报告已经输出为 `report.md / report.json / issues.csv`
-- [ ] 下一步：基于 `extraction_guide.md` 抽象可量化 YAML 质量指标，并用图表展示各 workflow 得分
+- [x] 已基于 `extraction_guide.md` 抽象可量化 YAML 质量指标，并用图表展示各 workflow 得分
+- [ ] 下一步：按质量报告中的扣分项补齐 `user_skills`、`transitions.default` 和空 `condition`
 
 ## 目标
 
