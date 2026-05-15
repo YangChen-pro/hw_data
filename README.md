@@ -29,6 +29,7 @@
 ├── extraction_guided.md
 ├── docs/
 │   ├── yaml_evaluation_guide.md
+│   ├── yaml_quality_scoring_rules.html
 │   └── source_materials/
 │       ├── ap_online/
 │       │   ├── ap_online_steps.pdf
@@ -80,6 +81,8 @@
   - AP 上线问题的原始资料，目前包含 PDF 和 6 份分步笔记，尚未映射到结构化 workflow
 - `docs/yaml_evaluation_guide.md`
   - 评估已有 YAML 的规则说明
+- `docs/yaml_quality_scoring_rules.html`
+  - 面向非领域读者的质量评分规则说明，用例子解释每个维度如何扣分
 - `todo.md`
   - 你当前要完成的任务说明
 
@@ -139,6 +142,7 @@
 如果要按 `extraction_guided.md` 的抽取规则生成质量评分和中文图表：
 
 - `tools/yaml_quality_score.py`
+- 评分规则说明：[`docs/yaml_quality_scoring_rules.html`](/Users/yangchen/Desktop/hw_data/docs/yaml_quality_scoring_rules.html)
 - 运行方式：`bash tools/run_quality_score_example.sh`
 - 默认输出：`reports/yaml_quality_scores/<时间戳>/`
 - 默认输入：扫描 `workflows/*/workflow.yaml`

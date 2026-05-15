@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YAML Workflow 质量评分规则</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f4ee;
+      --paper: #fffdf8;
+      --ink: #22201c;
+      --muted: #6f6a60;
+      --line: #e2d8c8;
+      --accent: #9a5b28;
+      --accent-2: #1f6f5b;
+      --warn: #b45309;
+      --bad: #b42318;
+      --good: #18794e;
+      --code: #2f2a24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, #fff8e7 0, var(--bg) 34rem);
+      color: var(--ink);
+      font-family: "PingFang SC", "Heiti SC", "STHeiti", "Hiragino Sans GB", system-ui, sans-serif;
+      line-height: 1.62;
+    }
+    main { max-width: 1120px; margin: 0 auto; padding: 40px 22px 56px; }
+    .hero {
+      padding: 34px 34px 28px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,250,238,.86));
+      box-shadow: 0 22px 70px rgba(83, 61, 35, .10);
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(30px, 5vw, 54px); line-height: 1.05; letter-spacing: -0.04em; }
+    h2 { margin: 0 0 16px; font-size: 22px; }
+    h3 { margin: 0 0 8px; font-size: 17px; }
+    p { margin: 0; }
+    .lead { max-width: 760px; color: var(--muted); font-size: 18px; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.72); color: var(--muted); font-size: 13px; }
+    .grid { display: grid; gap: 16px; }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    section { margin-top: 26px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--paper);
+      padding: 20px;
+      box-shadow: 0 12px 34px rgba(83, 61, 35, .06);
+    }
+    .formula {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .formula .box { padding: 18px; border-radius: 18px; background: #f3eadc; border: 1px solid #e5d5bc; }
+    .formula .op { align-self: center; color: var(--accent); font-weight: 700; font-size: 24px; }
+    .kicker { text-transform: uppercase; letter-spacing: .08em; color: var(--accent); font-size: 12px; font-weight: 800; }
+    .score { font-size: 34px; font-weight: 850; letter-spacing: -0.04em; }
+    .muted { color: var(--muted); }
+    .example { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .mini { border-radius: 15px; padding: 12px; border: 1px solid var(--line); background: #fffaf0; }
+    .mini.good { border-color: rgba(24,121,78,.28); background: #f0faf4; }
+    .mini.bad { border-color: rgba(180,35,24,.28); background: #fff3ef; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { color: var(--code); background: #f1e7d7; border-radius: 6px; padding: 1px 5px; }
+    pre { margin: 8px 0 0; white-space: pre-wrap; font-size: 12px; line-height: 1.5; }
+    ul { margin: 10px 0 0; padding-left: 18px; }
+    li { margin: 4px 0; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 16px; background: var(--paper); }
+    th, td { border-bottom: 1px solid var(--line); padding: 12px 14px; text-align: left; vertical-align: top; }
+    th { background: #efe2cf; font-size: 13px; color: #4d4031; }
+    tr:last-child td { border-bottom: 0; }
+    .tag { display: inline-block; min-width: 42px; text-align: center; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 750; }
+    .tag.good { background: #daf5e5; color: var(--good); }
+    .tag.warn { background: #fff1d6; color: var(--warn); }
+    .tag.bad { background: #ffe0dc; color: var(--bad); }
+    .footer { margin-top: 26px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 900px) {
+      .grid-3, .grid-2, .formula, .example { grid-template-columns: 1fr; }
+      .formula .op { display: none; }
+      .hero { padding: 26px 22px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="kicker">Scoring Rules</div>
+    <h1>YAML Workflow 质量评分规则</h1>
+    <p class="lead">这套评分不判断“网络排障知识是否绝对正确”，只判断抽出来的 YAML 是否像一份清楚、可执行、可检查的说明书。领域外的人可以把它理解成：流程图、步骤说明、输入参数、判断条件和兜底处理是否写完整。</p>
+    <div class="pill-row">
+      <span class="pill">依据：extraction_guided.md</span>
+      <span class="pill">总分：0-100</span>
+      <span class="pill">6 个维度平均</span>
+      <span class="pill">扣分项可回溯到具体文件</span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>怎么算分</h2>
+    <div class="formula">
+      <div class="box"><div class="kicker">Step 1</div><p>每个维度有若干检查项，例如“有没有 start_node”“condition 是否为空”。</p></div>
+      <div class="op">→</div>
+      <div class="box"><div class="kicker">Step 2</div><p>重要检查项权重大，普通格式项权重小。维度分 = 通过权重 / 总权重 × 100。</p></div>
+      <div class="op">→</div>
+      <div class="box"><div class="kicker">Step 3</div><p>总分 = 6 个维度分的平均值。</p></div>
+    </div>
+    <p class="footer">例：某 workflow 六项得分是 100、100、100、92、99、100，则总分约为 98.5。</p>
+  </section>
+
+  <section>
+    <h2>6 个维度，用人话解释</h2>
+    <div class="grid grid-3">
+      <article class="card">
+        <div class="kicker">01</div><h3>输入 Schema 完整性</h3>
+        <p class="muted">执行这个流程前，需要用户或系统提供什么信息，是否说清楚。</p>
+        <div class="example"><div class="mini good"><span class="tag good">好</span><pre>current_hop:
+  current_device
+  path_state
+  vlan_id</pre></div><div class="mini bad"><span class="tag bad">扣分</span><p>没有写 <code>current_hop</code>，别人不知道要填设备还是接口。</p></div></div>
+      </article>
+      <article class="card">
+        <div class="kicker">02</div><h3>骨架拓扑一致性</h3>
+        <p class="muted">流程图骨架是否完整：从哪里开始、有哪些步骤、能走到哪些结论。</p>
+        <div class="example"><div class="mini good"><span class="tag good">好</span><pre>start_node → step_1 → step_2
+step_2 → CONCLUSION_x</pre></div><div class="mini bad"><span class="tag bad">扣分</span><p><code>next_node</code> 指向不存在的 step，流程会断。</p></div></div>
+      </article>
+      <article class="card">
+        <div class="kicker">03</div><h3>Step 内容完整性</h3>
+        <p class="muted">每个步骤是否像一个清楚的任务卡：名字、说明、类型、文件名都对得上。</p>
+        <div class="example"><div class="mini good"><span class="tag good">好</span><pre>step_id: step_1_check_vlan
+name: 检查 VLAN
+type: diagnosis</pre></div><div class="mini bad"><span class="tag bad">扣分</span><p>文件叫 A，里面的 <code>step_id</code> 叫 B。</p></div></div>
+      </article>
+      <article class="card">
+        <div class="kicker">04</div><h3>Skill 与抽取字段</h3>
+        <p class="muted">步骤要执行什么命令、从结果里抽什么字段，是否可复用、可解析。</p>
+        <div class="example"><div class="mini good"><span class="tag good">好</span><pre>skill_id: skill_display_port_vlan
+selector: 按接口定位行
+extraction_schema: link_type</pre></div><div class="mini bad"><span class="tag bad">扣分</span><p>引用了 <code>skill_display_acl</code>，但没有对应 user_skills 文件。</p></div></div>
+      </article>
+      <article class="card">
+        <div class="kicker">05</div><h3>条件表达式质量</h3>
+        <p class="muted">判断分支是否明确，字段引用是否真的存在。</p>
+        <div class="example"><div class="mini good"><span class="tag good">好</span><pre>condition:
+  extracted.link_type == 'Trunk'</pre></div><div class="mini bad"><span class="tag bad">扣分</span><p><code>condition</code> 为空，机器不知道什么时候走这条分支。</p></div></div>
+      </article>
+      <article class="card">
+        <div class="kicker">06</div><h3>错误兜底与可执行性</h3>
+        <p class="muted">命令失败、解析失败、系统异常时，有没有安全出口；结论是否能指导下一步。</p>
+        <div class="example"><div class="mini good"><span class="tag good">好</span><pre>on_error:
+  parse_failure: CONCLUSION_PARSE_FAILURE</pre></div><div class="mini bad"><span class="tag bad">扣分</span><p>残留 <code>transitions.default</code>，这是旧写法，容易和显式规则冲突。</p></div></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>权重怎么理解</h2>
+    <table>
+      <thead><tr><th>权重</th><th>代表什么</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag bad">5</span></td><td>流程跑不起来的基础问题。</td><td><code>workflow.steps</code> 为空；steps 列表里声明了 step 但文件不存在。</td></tr>
+        <tr><td><span class="tag bad">4</span></td><td>入口或结论缺失，流程可读性严重受影响。</td><td><code>start_node</code> 为空；<code>conclusions</code> 为空。</td></tr>
+        <tr><td><span class="tag warn">3</span></td><td>重要结构缺失，但局部还可能读懂。</td><td>没有 <code>facts/current_hop</code>；diagnosis step 没有 skills；缺 on_error 三项。</td></tr>
+        <tr><td><span class="tag warn">2</span></td><td>会影响自动执行或机器判断的字段问题。</td><td><code>condition</code> 为空；<code>next_node</code> 无效；<code>skill_id</code> 不按 <code>skill_*</code> 命名。</td></tr>
+        <tr><td><span class="tag good">1</span></td><td>普通规范问题，通常容易修。</td><td>字段缺 description；precondition 缺说明；result_key 重复。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="grid grid-2">
+    <div class="card">
+      <h2>怎么读分数</h2>
+      <ul>
+        <li><strong>90+</strong>：结构基本可靠，主要补少量 skill 或 condition。</li>
+        <li><strong>70-90</strong>：可用但有明显短板，需要按维度修。</li>
+        <li><strong>70 以下</strong>：不建议直接进入自动执行，先补骨架或 schema。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>先修什么</h2>
+      <ul>
+        <li>先修流程断点：缺 step、无效 next_node、无 start_node。</li>
+        <li>再修机器判断：空 condition、引用不存在的 extracted 字段。</li>
+        <li>最后修可维护性：description、selector、user_skills 细节。</li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="footer">实现位置：<code>tools/yaml_quality/scorer.py</code>。本页是给人看的解释版，真正打分以代码和 <code>extraction_guided.md</code> 为准。</p>
+</main>
+</body>
+</html>

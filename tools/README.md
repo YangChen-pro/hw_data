@@ -48,6 +48,12 @@ bash tools/run_viewer_example.sh \
 
 两个脚本都会使用 `conda` 环境 `claw` 执行对应 Python 入口。
 
+如果你想先看评分规则的人类友好版，打开：
+
+```text
+docs/yaml_quality_scoring_rules.html
+```
+
 如果你想基于 `extraction_guided.md` 的规则给所有 workflow 生成质量评分和中文图表：
 
 ```bash
@@ -119,7 +125,7 @@ reports/workflow_viewer/ap_offline/<时间戳>/index.html
 - `dimension_score_heatmap.png`：分维度热力图
 - `dimension_radar.png`：分维度雷达图
 
-当前评分维度直接对应 `extraction_guided.md`：
+当前评分维度直接对应 `extraction_guided.md`，简明解释见 `docs/yaml_quality_scoring_rules.html`：
 
 - 输入 Schema 完整性
 - 骨架拓扑一致性
